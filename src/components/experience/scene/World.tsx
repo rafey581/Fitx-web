@@ -18,7 +18,7 @@ import { film, local, useFilmUi } from "../store";
 import { Dust, Floor } from "./Atmosphere";
 import { Emblem } from "./Emblem";
 import { cameraAt, WORLD } from "./path";
-import { Coaches, FinaleHalo, Plans, Programs, Studio } from "./Stations";
+import { Coaches, FinaleHalo, Plans, Programs, Progress, Studio } from "./Stations";
 import { Tunnel } from "./Tunnel";
 
 const BG = "#050407";
@@ -149,6 +149,7 @@ function Scene({ content, mobile }: { content: FilmContent; mobile: boolean }) {
       <Programs services={content.services} />
       <Studio gallery={content.gallery} />
       <Coaches coaches={content.coaches} />
+      <Progress />
       <Plans plans={content.plans} />
       <Floor />
       <Emblem position={[WORLD.finale.x, WORLD.finale.y, WORLD.finale.z]} scale={0.85} shards={mobile ? 16 : 30} />

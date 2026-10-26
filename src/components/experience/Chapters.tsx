@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { timings, tracking } from "@/lib/fitx/knowledge";
+
 import type { FilmContent } from "./content";
 
 /**
@@ -10,6 +12,9 @@ import type { FilmContent } from "./content";
  * `data-sub="center,width"` marks a beat inside a chapter: it is fully shown
  * when the chapter's local progress is within `width` of `center`.
  */
+
+/** tel: link for a local Pakistani number (0322-… → +92322…). */
+const telHref = (n: string) => `tel:${n.replace(/\D/g, "").replace(/^0/, "+92")}`;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -30,7 +35,7 @@ export function Chapters({ content }: { content: FilmContent }) {
   const services = content.services.slice(0, 5);
   const coaches = content.coaches.slice(0, 3);
   const plans = content.plans.slice(0, 3);
-  const whatsapp = content.whatsapp.replace(/[^\d]/g, "");
+  const whatsapp = content.whatsapp.replace(/\D/g, "").replace(/^0(?=3)/, "92");
 
   return (
     <div className="film-frames">
@@ -164,26 +169,59 @@ export function Chapters({ content }: { content: FilmContent }) {
         </div>
       </section>
 
-      {/* 05 · Plans */}
-      <section data-frame="5" className="film-frame" aria-label="Membership plans">
+      {/* 05 · Progress */}
+      <section data-frame="5" className="film-frame" aria-label="Progress tracking">
+        <div className="absolute left-5 top-28 sm:left-10">
+          <Tag index={5}>Progress</Tag>
+        </div>
+        <div className="absolute inset-x-5 bottom-24 max-w-xl sm:left-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
+          <h2 className="film-display text-[12vw] md:text-[5.2vw]">
+            <span className="block" data-scramble>
+              Measured,
+            </span>
+            <span className="block text-accent" data-scramble>
+              not guessed
+            </span>
+          </h2>
+          <p className="mt-5 text-sm leading-relaxed text-white/70 md:text-base">
+            Phone-based body-composition tracking with progress graphs. We review your trends weekly or about every
+            10 days and adjust your plan.
+          </p>
+          <ul className="film-mono mt-5 flex flex-wrap gap-2 text-[10px] text-white/70">
+            {tracking.metrics.slice(0, 8).map((m) => (
+              <li key={m} className="rounded-full border border-white/15 px-3 py-1">
+                {m}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-5 max-w-md text-[11px] leading-relaxed text-white/40">{tracking.disclaimer}</p>
+        </div>
+      </section>
+
+      {/* 06 · Plans */}
+      <section data-frame="6" className="film-frame" aria-label="Fees">
         <div className="absolute inset-x-5 top-28 text-center">
           <div className="flex justify-center">
-            <Tag index={5}>Plans</Tag>
+            <Tag index={6}>Fees</Tag>
           </div>
           <h2 className="film-display mt-4 text-[9vw] md:text-[4.6vw]">
-            No lock-ins. <span className="text-accent">No hidden fees.</span>
+            Two ways to train. <span className="text-accent">Save 10% on 3 months.</span>
           </h2>
         </div>
-        <div className="absolute inset-x-3 bottom-20 grid grid-cols-3 gap-2 sm:inset-x-10 sm:gap-6 md:bottom-12">
+        <div
+          className={`absolute inset-x-3 bottom-20 mx-auto grid gap-2 sm:inset-x-10 sm:gap-6 md:bottom-12 ${
+            plans.length === 2 ? "max-w-4xl grid-cols-2" : "grid-cols-3"
+          }`}
+        >
           {plans.map((p) => (
             <Link
               key={p.name}
               href={p.href}
               className={`film-glass group block p-3 sm:p-6 ${p.highlighted ? "film-glass-hot" : ""}`}
             >
-              <p className="film-mono flex justify-between text-[10px] text-white/60">
+              <p className="film-mono flex justify-between gap-2 text-[10px] text-white/60">
                 <span>{p.name}</span>
-                {p.highlighted ? <span className="hidden text-accent sm:inline">Most popular</span> : null}
+                {p.highlighted ? <span className="hidden text-accent sm:inline">Personal</span> : null}
               </p>
               <p className="film-display mt-3 text-lg sm:text-3xl">{p.price}</p>
               <p className="film-mono text-[10px] text-white/50">{p.period}</p>
@@ -195,16 +233,16 @@ export function Chapters({ content }: { content: FilmContent }) {
                   </li>
                 ))}
               </ul>
-              <span className="film-link mt-4 text-[10px] sm:mt-6">Choose</span>
+              <span className="film-link mt-4 text-[10px] sm:mt-6">Enquire</span>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* 06 · Join */}
-      <section data-frame="6" className="film-frame" aria-label="Start training">
-        <div className="absolute inset-x-0 bottom-[22svh] flex flex-col items-center px-5 text-center md:bottom-[17svh]">
-          <Tag index={6}>Your move</Tag>
+      {/* 07 · Join */}
+      <section data-frame="7" className="film-frame" aria-label="Start training">
+        <div className="absolute inset-x-0 bottom-[24svh] flex flex-col items-center px-5 text-center md:bottom-[20svh]">
+          <Tag index={7}>Your move</Tag>
           <h2 className="film-display mt-5 text-[14vw] md:text-[6.4vw]">
             <span className="block" data-scramble>
               Start
@@ -217,30 +255,32 @@ export function Chapters({ content }: { content: FilmContent }) {
             <Link href="/contact" className="film-btn film-btn-hot">
               Book a consultation
             </Link>
+            {content.phones.slice(0, 2).map((n) => (
+              <a key={n} href={telHref(n)} className="film-btn">
+                Call {n}
+              </a>
+            ))}
             {whatsapp ? (
               <a href={`https://wa.me/${whatsapp}`} className="film-btn" target="_blank" rel="noreferrer">
-                WhatsApp us
+                WhatsApp
               </a>
             ) : null}
           </div>
         </div>
-        <footer className="film-mono absolute inset-x-5 bottom-16 hidden gap-4 text-[10px] text-white/50 sm:left-10 sm:right-28 md:bottom-16 md:grid md:grid-cols-4">
+        <footer className="film-mono absolute inset-x-5 bottom-16 hidden gap-4 text-[10px] text-white/50 sm:left-10 sm:right-28 md:grid md:grid-cols-4">
           <p>
             <span className="block text-white/30">Visit</span>
             {content.address}
           </p>
-          <p>
-            <span className="block text-white/30">Call</span>
-            {content.phone}
-          </p>
-          <p>
-            <span className="block text-white/30">Hours</span>
-            {content.hours}
-          </p>
-          <p className="md:text-right">
-            <span className="block text-white/30">© {new Date().getFullYear()}</span>
-            {content.businessName}
-          </p>
+          {(["Male", "Female", "Family"] as const).map((group) => (
+            <p key={group}>
+              <span className="block text-white/30">{group === "Family" ? "Family Hour" : `${group} sessions`}</span>
+              {timings
+                .filter((t) => t.group === group)
+                .map((t) => `${t.start} – ${t.end}`)
+                .join(" · ")}
+            </p>
+          ))}
         </footer>
       </section>
     </div>

@@ -92,12 +92,14 @@ export function Coaches({ coaches }: { coaches: FilmContent["coaches"] }) {
 
 /** Chapter 5 — three pillars, one per plan; the highlighted plan glows. */
 export function Plans({ plans }: { plans: FilmContent["plans"] }) {
-  const { z, xs } = WORLD.plans;
-  const heights = [2.6, 3.8, 3.2];
+  const { z } = WORLD.plans;
+  const shown = plans.slice(0, 3);
+  const xs = shown.length === 2 ? WORLD.plans.pair : WORLD.plans.xs;
+  const heights = shown.length === 2 ? [3.0, 3.8] : [2.6, 3.8, 3.2];
   const glow = useRef<THREE.MeshBasicMaterial[]>([]);
 
   useFrame(({ clock }) => {
-    const rise = ramp(film.time, 4.85, 5.45);
+    const rise = ramp(film.time, 5.85, 6.45);
     glow.current.forEach((m, i) => {
       if (!m) return;
       m.opacity = (0.6 + Math.sin(clock.elapsedTime * 2 + i) * 0.25) * rise;
@@ -106,7 +108,7 @@ export function Plans({ plans }: { plans: FilmContent["plans"] }) {
 
   return (
     <group>
-      {plans.slice(0, 3).map((p, k) => {
+      {shown.map((p, k) => {
         const h = heights[k] ?? 3;
         return (
           <group key={p.name + k} position={[xs[k], WORLD.floorY, z]}>
@@ -159,6 +161,95 @@ export function FinaleHalo() {
           <meshBasicMaterial color={[2.6, 0.75, 0.12]} transparent opacity={0.8 - i * 0.2} toneMapped={false} />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+/**
+ * Chapter 5 — a holographic progress dashboard: weekly bars rise, a body-fat
+ * trend line draws itself and a gauge ring fills as the chapter plays.
+ * Illustrative only: no client data is shown.
+ */
+const BARS = [0.55, 0.62, 0.6, 0.7, 0.74, 0.8, 0.86, 0.93];
+const TREND = [0.92, 0.86, 0.88, 0.78, 0.74, 0.69, 0.62, 0.58, 0.55, 0.5];
+
+export function Progress() {
+  const { x, y, z } = WORLD.progress;
+  const bars = useRef<THREE.Group>(null);
+  const line = useRef<THREE.Line>(null);
+  const gauge = useRef<THREE.Mesh>(null);
+
+  const lineGeometry = useMemo(() => {
+    const pts = TREND.map((v, i) => new THREE.Vector3(-1.9 + (i / (TREND.length - 1)) * 3.8, -0.2 + v * 1.4, 0.05));
+    const curve = new THREE.CatmullRomCurve3(pts);
+    return new THREE.BufferGeometry().setFromPoints(curve.getPoints(120));
+  }, []);
+
+  const trendLine = useMemo(
+    () =>
+      new THREE.Line(
+        lineGeometry,
+        new THREE.LineBasicMaterial({ color: new THREE.Color(2.6, 2.6, 2.7), toneMapped: false }),
+      ),
+    [lineGeometry],
+  );
+
+  const frame = useMemo(() => {
+    const w = 2.3;
+    const h = 1.45;
+    const g = new THREE.BufferGeometry();
+    const grid: number[] = [];
+    for (let i = 0; i <= 4; i++) {
+      const yy = -h + (i / 4) * 2 * h;
+      grid.push(-w, yy, 0, w, yy, 0);
+    }
+    g.setAttribute("position", new THREE.Float32BufferAttribute(grid, 3));
+    return g;
+  }, []);
+
+  useFrame(({ clock }) => {
+    const play = ramp(film.time, 4.92, 5.22);
+    const t = clock.elapsedTime;
+    bars.current?.children.forEach((bar, i) => {
+      const h = BARS[i] * 1.6 * ramp(play, i * 0.04, 0.55 + i * 0.04) + Math.sin(t * 1.5 + i) * 0.02;
+      bar.scale.y = Math.max(0.001, h);
+      bar.position.y = -1.3 + bar.scale.y / 2;
+    });
+    if (line.current) line.current.geometry.setDrawRange(0, Math.floor(121 * ramp(play, 0.25, 1)));
+    if (gauge.current) {
+      const m = gauge.current.material as THREE.MeshBasicMaterial;
+      m.opacity = 0.9 * play;
+      gauge.current.rotation.z = t * 0.2;
+    }
+  });
+
+  return (
+    <group position={[x, y, z]} rotation={[0, -0.5, 0]} scale={1.15}>
+      {/* Glass backplate */}
+      <mesh position={[0, 0, -0.06]}>
+        <planeGeometry args={[5, 3.3]} />
+        <meshBasicMaterial color="#120a07" transparent opacity={0.55} />
+      </mesh>
+      <lineSegments geometry={frame}>
+        <lineBasicMaterial color={[0.8, 0.8, 0.85]} transparent opacity={0.18} toneMapped={false} />
+      </lineSegments>
+      <group ref={bars}>
+        {BARS.map((_, i) => (
+          <mesh key={i} position={[-1.9 + i * 0.5 + 0.12, -1.3, 0]}>
+            <boxGeometry args={[0.24, 1, 0.08]} />
+            <meshBasicMaterial color={i === BARS.length - 1 ? [3, 0.9, 0.15] : [1.1, 0.4, 0.12]} toneMapped={false} />
+          </mesh>
+        ))}
+      </group>
+      <primitive object={trendLine} ref={line} />
+      <mesh ref={gauge} position={[2.95, 0.9, 0.1]}>
+        <torusGeometry args={[0.5, 0.035, 8, 96, Math.PI * 1.45]} />
+        <meshBasicMaterial color={[3, 0.9, 0.15]} transparent opacity={0} toneMapped={false} />
+      </mesh>
+      <mesh position={[2.95, 0.9, 0.08]}>
+        <torusGeometry args={[0.5, 0.012, 8, 96]} />
+        <meshBasicMaterial color={[0.6, 0.6, 0.65]} transparent opacity={0.35} toneMapped={false} />
+      </mesh>
     </group>
   );
 }

@@ -17,6 +17,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
+import { fees, studio } from "../src/lib/fitx/knowledge";
 import { defaultTheme } from "../src/lib/theme/tokens";
 import {
   LinkType,
@@ -51,11 +52,12 @@ const settingsSeed: Array<{ key: string; group: string; value: unknown }> = [
     value: {
       businessName: "FITX Personal Fitness Training Studio",
       tagline: "The most premium personal training program",
-      address: "Sahiwal, Punjab, Pakistan",
-      phone: "+92 300 0000000",
-      whatsapp: "+92 300 0000000",
+      address: studio.address,
+      phone: studio.phones.join(" / "),
+      // Left blank until the studio confirms which number is on WhatsApp.
+      whatsapp: "",
       email: "info@fitx.pk",
-      openingHours: "Mon–Sat · 6:00am – 10:00pm",
+      openingHours: studio.hoursSummary,
       mapEmbed: "",
       instagram: "",
       facebook: "",
@@ -496,11 +498,11 @@ const starterPageSections: Record<
       type: "rich-text",
       content: {
         eyebrow: "Plans",
-        heading: "Simple membership plans",
+        heading: "Fees",
         showAccentSlash: true,
         align: "left",
         paragraphs: [
-          "No lock-ins and no hidden fees — pick a plan and upgrade whenever you like.",
+          "Group or one-to-one coaching, with body-composition progress tracking. Three-month packages save 10%.",
         ],
       },
     },
@@ -520,11 +522,11 @@ const starterPageSections: Record<
       type: "rich-text",
       content: {
         eyebrow: "Weekly schedule",
-        heading: "Plan your week",
+        heading: "Session timings",
         showAccentSlash: true,
         align: "left",
         paragraphs: [
-          "Strength, boxing, conditioning and yoga — the classes available each week at FITX.",
+          "Separate male and female sessions, plus a Family Hour where the whole family can train together.",
         ],
       },
     },
@@ -615,8 +617,8 @@ const servicesSeed = [
 const trainersSeed = [
   {
     slug: "head-coach",
-    name: "Head Coach",
-    title: "Founder & Head Coach",
+    name: studio.founder,
+    title: "Founder",
     bio: "Strength and conditioning specialist with a decade of coaching experience.",
     specialties: ["Strength", "Conditioning", "Fat loss"],
     certifications: ["Certified Personal Trainer"],
@@ -666,80 +668,26 @@ const testimonialsSeed = [
   },
 ];
 
-const plansSeed = [
-  {
-    name: "Starter",
-    price: "8000",
-    billingPeriod: "per month",
-    features: ["4 personal sessions", "Progress tracking", "Nutrition basics"],
-    isHighlighted: false,
-    sortOrder: 1,
-  },
-  {
-    name: "Commit",
-    price: "15000",
-    billingPeriod: "per month",
-    features: [
-      "8 personal sessions",
-      "Full progress tracking",
-      "Nutrition coaching",
-      "Studio access",
-    ],
-    isHighlighted: true,
-    sortOrder: 2,
-  },
-  {
-    name: "Transform",
-    price: "25000",
-    billingPeriod: "per month",
-    features: [
-      "Unlimited sessions",
-      "1-to-1 programming",
-      "Nutrition coaching",
-      "Priority scheduling",
-    ],
-    isHighlighted: false,
-    sortOrder: 3,
-  },
-];
+// Fees and timings come from the studio's approved knowledge base
+// (src/lib/fitx/knowledge.ts) so the site, chatbot and seed never disagree.
+const plansSeed = fees.map((fee, index) => ({
+  name: fee.name,
+  price: String(fee.monthly),
+  billingPeriod: "per month",
+  features: fee.features,
+  isHighlighted: fee.highlighted,
+  sortOrder: index + 1,
+}));
 
-const timetableSeed = [
-  {
-    dayOfWeek: 1,
-    startTime: "06:00",
-    endTime: "07:00",
-    title: "Strength",
-    sortOrder: 1,
-  },
-  {
-    dayOfWeek: 1,
-    startTime: "18:00",
-    endTime: "19:00",
-    title: "Boxing",
-    sortOrder: 2,
-  },
-  {
-    dayOfWeek: 3,
-    startTime: "06:00",
-    endTime: "07:00",
-    title: "Conditioning",
-    sortOrder: 3,
-  },
-  {
-    dayOfWeek: 3,
-    startTime: "19:00",
-    endTime: "20:00",
-    title: "Yoga & Mobility",
-    sortOrder: 4,
-  },
-  {
-    dayOfWeek: 5,
-    startTime: "18:00",
-    endTime: "19:00",
-    title: "Boxing",
-    sortOrder: 5,
-  },
-];
+// No weekly class grid yet: the timetable page shows the session timings from
+// the knowledge base until real classes are added in the admin.
+const timetableSeed: Array<{
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  title: string;
+  sortOrder: number;
+}> = [];
 
 // ---------------------------------------------------------------------------
 // Seed steps
@@ -989,7 +937,7 @@ async function seedContentModules(): Promise<void> {
       data: plansSeed.map((item) => ({ ...item, isPublished: true })),
     });
   }
-  if (timetable === 0) {
+  if (timetable === 0 && timetableSeed.length > 0) {
     await prisma.timetableEntry.createMany({
       data: timetableSeed.map((item) => ({ ...item, isPublished: true })),
     });

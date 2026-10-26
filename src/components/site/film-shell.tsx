@@ -167,8 +167,7 @@ export function FilmShell({
       <header className={`film-site-header ${scrolled ? "is-scrolled" : ""}`} inert={menuOpen}>
         <Link href="/" className="flex items-center gap-3" aria-label={`${businessName} home`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/fitx/3d/logo-trim.png" alt="" className="h-9 w-auto" />
-          <span className="film-mono hidden text-[11px] text-white/70 sm:inline">FITX®</span>
+          <img src="/images/fitx/3d/logo-horizontal.png" alt="FITX" width={419} height={165} className="h-8 w-auto sm:h-9" />
         </Link>
         <p className="film-mono hidden text-[11px] text-white/60 capitalize md:block">
           <span className="text-accent">/</span> {current}

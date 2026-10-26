@@ -30,7 +30,7 @@ export function Dust({ count }: { count: number }) {
     for (let i = 0; i < count; i++) {
       pos[i * 3] = (rand() - 0.5) * 22;
       pos[i * 3 + 1] = (rand() - 0.5) * 12;
-      pos[i * 3 + 2] = 14 - rand() * 370;
+      pos[i * 3 + 2] = 14 - rand() * 410;
       seed[i] = rand();
     }
     const g = new THREE.BufferGeometry();
@@ -104,8 +104,8 @@ export function Floor() {
     if (material.current) material.current.uniforms.uTime.value = clock.elapsedTime;
   });
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, WORLD.floorY, -300]}>
-      <planeGeometry args={[80, 140]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, WORLD.floorY, -330]}>
+      <planeGeometry args={[80, 180]} />
       <shaderMaterial
         ref={material}
         uniforms={uniforms}

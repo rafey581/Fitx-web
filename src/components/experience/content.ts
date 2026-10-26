@@ -33,6 +33,8 @@ export type FilmContent = {
   businessName: string;
   address: string;
   phone: string;
+  /** Individual numbers parsed from `phone` (it may list several). */
+  phones: string[];
   whatsapp: string;
   email: string;
   hours: string;
@@ -43,6 +45,8 @@ export type FilmContent = {
   gallery: string[];
   nav: { label: string; href: string }[];
 };
+
+import { fees, formatRs, studio } from "@/lib/fitx/knowledge";
 
 const photo = (name: string) => `/images/fitx/3d/PHOTO-${name}.webp`;
 
@@ -97,11 +101,12 @@ export const galleryImages = [
 
 export const defaultContent: FilmContent = {
   businessName: "FITX Personal Fitness Training Studio",
-  address: "Shadman Town, Faisalabad Road, Sahiwal",
-  phone: "+92 300 0000000",
-  whatsapp: "+92 300 0000000",
+  address: studio.address,
+  phone: studio.phones.join(" / "),
+  phones: studio.phones,
+  whatsapp: "",
   email: "info@fitx.pk",
-  hours: "Mon–Sat · 6:00am – 10:00pm",
+  hours: studio.hoursSummary,
   instagram: "",
   services: [
     {
@@ -137,8 +142,8 @@ export const defaultContent: FilmContent = {
   ],
   coaches: [
     {
-      name: "Head Coach",
-      role: "Founder & Head Coach",
+      name: studio.founder,
+      role: "Founder",
       bio: "Strength and conditioning specialist with a decade of coaching experience.",
       href: "/coaches",
       image: fallbackCoachImages[0],
@@ -158,32 +163,14 @@ export const defaultContent: FilmContent = {
       image: fallbackCoachImages[2],
     },
   ],
-  plans: [
-    {
-      name: "Starter",
-      price: "PKR 8,000",
-      period: "per month",
-      features: ["4 personal sessions", "Progress tracking", "Nutrition basics"],
-      highlighted: false,
-      href: "/contact",
-    },
-    {
-      name: "Commit",
-      price: "PKR 15,000",
-      period: "per month",
-      features: ["8 personal sessions", "Full progress tracking", "Nutrition coaching", "Studio access"],
-      highlighted: true,
-      href: "/contact",
-    },
-    {
-      name: "Transform",
-      price: "PKR 25,000",
-      period: "per month",
-      features: ["Unlimited sessions", "1-to-1 programming", "Nutrition coaching", "Priority scheduling"],
-      highlighted: false,
-      href: "/contact",
-    },
-  ],
+  plans: fees.map((f) => ({
+    name: f.name,
+    price: formatRs(f.monthly),
+    period: "per month",
+    features: f.features,
+    highlighted: f.highlighted,
+    href: "/contact",
+  })),
   gallery: galleryImages,
   nav: [
     { label: "Who we are", href: "/who-we-are" },
@@ -205,7 +192,8 @@ export const CHAPTERS = [
   { id: "programs", label: "Programs", vh: 320 },
   { id: "studio", label: "Studio", vh: 220 },
   { id: "coaches", label: "Coaches", vh: 260 },
-  { id: "plans", label: "Plans", vh: 200 },
+  { id: "progress", label: "Progress", vh: 220 },
+  { id: "plans", label: "Fees", vh: 200 },
   { id: "join", label: "Join", vh: 170 },
 ] as const;
 

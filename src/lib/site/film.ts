@@ -54,7 +54,10 @@ export async function getFilmContent(): Promise<FilmContent> {
     businessName: g.businessName || defaultContent.businessName,
     address: g.address || defaultContent.address,
     phone: g.phone || defaultContent.phone,
-    whatsapp: g.whatsapp || g.phone || defaultContent.whatsapp,
+    phones: g.phone
+      ? g.phone.split(/[/·,|]/).map((n) => n.trim()).filter(Boolean)
+      : defaultContent.phones,
+    whatsapp: g.whatsapp,
     email: g.email || defaultContent.email,
     hours: g.openingHours || defaultContent.hours,
     instagram: g.instagram,

@@ -27,6 +27,7 @@ import {
   galleryImages,
   PHOTOS,
 } from "@/components/experience/content";
+import { familyHour, studio, timings as sessionTimings } from "@/lib/fitx/knowledge";
 import { LeadForm } from "@/components/site/lead-form";
 import { Home3DHero } from "@/components/site/Home3DHero";
 
@@ -901,12 +902,16 @@ async function PlansGrid({
         heading={pickStr(content, "heading")}
         slash={pickBool(content, "showAccentSlash", true)}
       />
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
+      <div
+        className={`mt-10 grid gap-6 ${plans.length === 2 ? "max-w-4xl md:grid-cols-2" : "md:grid-cols-3"}`}
+      >
         {plans.map((plan) => {
           const features = Array.isArray(plan.features)
             ? (plan.features as unknown[]).map(String)
             : [];
-          const price = plan.price ? plan.price.toString() : "";
+          const price = plan.price
+            ? Number(plan.price).toLocaleString("en-US", { maximumFractionDigits: 0 })
+            : "";
           return (
             <article
               key={plan.id}
@@ -922,10 +927,12 @@ async function PlansGrid({
                     aria-hidden="true"
                     className="bg-grid-overlay absolute inset-0 opacity-40"
                   />
-                  <p className="eyebrow absolute top-6 right-6 rounded-full bg-accent px-3 py-1 text-white">
-                    Most popular
-                  </p>
                 </>
+              ) : null}
+              {plan.isHighlighted ? (
+                <p className="eyebrow relative mb-3 w-fit rounded-full bg-accent px-3 py-1 text-white">
+                  Featured
+                </p>
               ) : null}
               <h3 className="heading-display relative text-xl">{plan.name}</h3>
               <p className="relative mt-4">
@@ -1508,7 +1515,34 @@ async function TimetableSection({
           ))}
         </div>
       ) : (
-        <p className="mt-8 text-sm text-muted">No classes published yet.</p>
+        // No class schedule in the CMS: show the studio's session timings.
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {(["Male", "Female", "Family"] as const).map((group) => (
+            <div key={group} className="card card-hover overflow-hidden">
+              <h3 className="heading-display border-b border-line px-5 py-4 text-lg text-ink">
+                {group === "Family" ? "Family Hour" : `${group} sessions`}
+              </h3>
+              <ul className="divide-y divide-line">
+                {sessionTimings
+                  .filter((t) => t.group === group)
+                  .map((t) => (
+                    <li key={t.start} className="flex items-center gap-3 px-5 py-4">
+                      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent" />
+                      <time className="text-base font-semibold text-ink">
+                        {t.start} – {t.end}
+                      </time>
+                    </li>
+                  ))}
+              </ul>
+              {group === "Family" ? (
+                <p className="px-5 pb-5 text-sm text-muted">{familyHour.description}</p>
+              ) : null}
+            </div>
+          ))}
+          <p className="text-sm text-muted md:col-span-3">
+            Call {studio.phones.join(" or ")} to confirm current slot availability.
+          </p>
+        </div>
       )}
     </SectionShell>
   );
@@ -1525,9 +1559,12 @@ function contactFieldHref(
 ): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
-  if (kind === "tel") return `tel:${trimmed.replace(/[^+\d\s-]/g, "")}`;
   if (kind === "mailto") return `mailto:${trimmed}`;
-  const digits = trimmed.replace(/\D/g, "");
+  // Several numbers may be listed ("0322-… / 0300-…"); link the first one.
+  const first = trimmed.split(/[/·,|]/)[0].trim();
+  if (kind === "tel") return `tel:${first.replace(/[^+\d]/g, "")}`;
+  // wa.me needs the international form: Pakistani 03xx… → 923xx…
+  const digits = first.replace(/\D/g, "").replace(/^0(?=3)/, "92");
   return digits ? `https://wa.me/${digits}` : null;
 }
 

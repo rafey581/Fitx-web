@@ -15,8 +15,9 @@ export const WORLD = {
   studio: { z0: -176, step: -5.2, radius: 4.4 },
   coaches: { z: -262, xs: [-10, 0, 10] },
   floorY: -2.2,
-  plans: { z: -292, xs: [-3.4, 0, 3.4] },
-  finale: new THREE.Vector3(0, 0.9, -336),
+  progress: new THREE.Vector3(2.7, 0.5, -300),
+  plans: { z: -332, xs: [-3.4, 0, 3.4], pair: [-2.2, 2.2] },
+  finale: new THREE.Vector3(0, 0.9, -376),
 };
 
 type V3 = [number, number, number];
@@ -59,14 +60,18 @@ const KEYS: Key[] = [
   { t: 3.93, pos: [0, 0.6, -240], look: [0, 0.5, -262] },
   // 4 · Coaches — visit each monolith.
   ...coachKeys,
-  { t: 4.95, pos: [1.5, 2.6, -264], look: [0, -0.6, -292] },
-  // 5 · Plans — rise over the pillars.
-  { t: 5.3, pos: [0, 2.8, -277], look: [0, 0, -292] },
-  { t: 5.65, pos: [0, 1.1, -282.5], look: [0, 0.4, -292] },
-  { t: 5.98, pos: [0, 4.2, -300], look: [0, 1, -330] },
-  // 6 · Join — settle in front of the final emblem.
-  { t: 6.45, pos: [0, 1.0, -318], look: [0, -0.4, -336] },
-  { t: 7, pos: [0, 0.6, -324], look: [0, -1.2, -336] },
+  { t: 4.95, pos: [1.2, 1.6, -268], look: [2.2, 0.6, -300] },
+  // 5 · Progress — drift up to the holographic tracking dashboard.
+  { t: 5.35, pos: [0.4, 0.7, -292], look: [2.2, 0.5, -300] },
+  { t: 5.7, pos: [0.5, 0.6, -294], look: [2.3, 0.5, -300] },
+  { t: 5.98, pos: [0, 2.4, -306], look: [0, 0.2, -332] },
+  // 6 · Fees — rise over the pillars.
+  { t: 6.3, pos: [0, 2.8, -317], look: [0, 0, -332] },
+  { t: 6.65, pos: [0, 1.1, -322.5], look: [0, 0.4, -332] },
+  { t: 6.98, pos: [0, 4.2, -340], look: [0, 1, -370] },
+  // 7 · Join — settle in front of the final emblem.
+  { t: 7.45, pos: [0, 1.0, -358], look: [0, -0.4, -376] },
+  { t: 8, pos: [0, 0.6, -364], look: [0, -1.2, -376] },
 ];
 
 function catmull(p0: number, p1: number, p2: number, p3: number, t: number) {

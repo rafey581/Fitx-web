@@ -1,125 +1,199 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 
-const knowledgeBase = [
-  {
-    keywords: ["hours", "timing", "open", "close", "time"],
-    answer: "FITX is open Mon–Sat · 6:00am – 10:00pm. We're closed on Sundays.",
-  },
-  {
-    keywords: ["location", "address", "where", "sahiwal"],
-    answer: "We're located in Shadman Town, Faisalabad Road, Sahiwal, Punjab, Pakistan.",
-  },
-  {
-    keywords: ["price", "cost", "plan", "membership", "fee"],
-    answer: "Our plans: Starter PKR 8,000/month (4 sessions), Commit PKR 15,000/month (8 sessions + nutrition), Transform PKR 25,000/month (Unlimited + priority). Visit /plans for details.",
-  },
-  {
-    keywords: ["contact", "phone", "whatsapp", "call"],
-    answer: "You can reach us at +92 300 0000000 or WhatsApp us. Or book a consultation at /contact",
-  },
-  {
-    keywords: ["service", "training", "boxing", "yoga", "personal"],
-    answer: "We offer Personal Training, Boxing & Conditioning, Group Training, Yoga & Mobility, and Nutrition Coaching. Check /services for details.",
-  },
-  {
-    keywords: ["coach", "trainer"],
-    answer: "Our team includes our Head Coach (Founder), Boxing Coach, and Yoga Coach. Meet them at /coaches",
-  },
-  {
-    keywords: ["book", "consultation", "join"],
-    answer: "Book your free consultation at /contact. We'll assess your goals and build a custom plan for you!",
-  },
-];
+import { localAnswer } from "@/lib/fitx/answer";
+import { studio, suggestedQuestions } from "@/lib/fitx/knowledge";
 
-function getResponse(query: string): string {
-  const lower = query.toLowerCase();
-  for (const item of knowledgeBase) {
-    if (item.keywords.some((k) => lower.includes(k))) {
-      return item.answer;
+type Message = { role: "user" | "assistant"; content: string };
+
+const GREETING: Message = {
+  role: "assistant",
+  content:
+    "Hi! I'm the FITX assistant. Ask me about fees, timings, Family Hour, progress tracking or how to join.",
+};
+
+/** Turn phone numbers and "Contact page" mentions into links. */
+function linkify(text: string): ReactNode[] {
+  const parts = text.split(/(0\d{3}-\d{7}|Contact page)/g);
+  return parts.map((part, i) => {
+    if (/^0\d{3}-\d{7}$/.test(part)) {
+      return (
+        <a key={i} href={`tel:+92${part.slice(1).replace("-", "")}`} className="text-accent underline underline-offset-2">
+          {part}
+        </a>
+      );
     }
-  }
-  return "Thanks for reaching out! For specific questions about pricing, schedules, or bookings, I'd recommend booking a consultation at /contact or calling us at +92 300 0000000. What else can I help with?";
+    if (part === "Contact page") {
+      return (
+        <Link key={i} href="/contact" className="text-accent underline underline-offset-2">
+          {part}
+        </Link>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
 }
 
 export function AIChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Array<{ role: "user" | "bot"; text: string }>>([
-    { role: "bot", text: "Hey! I'm FITX Bot. Ask me about hours, pricing, services, or how to get started!" },
-  ]);
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, busy]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const userMsg = input.trim();
-    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+  useEffect(() => {
+    if (!open) return;
+    inputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  async function send(text: string) {
+    const question = text.trim();
+    if (!question || busy) return;
+    const next: Message[] = [...messages, { role: "user", content: question }];
+    setMessages(next);
     setInput("");
-    setTimeout(() => {
-      const response = getResponse(userMsg);
-      setMessages((prev) => [...prev, { role: "bot", text: response }]);
-    }, 500);
-  };
+    setBusy(true);
+    let reply: string;
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // The greeting is UI chrome, not part of the conversation.
+        body: JSON.stringify({ messages: next.slice(1) }),
+      });
+      const data = (await res.json()) as { reply?: string };
+      reply = data.reply || localAnswer(question);
+    } catch {
+      // Offline or server unreachable: answer from the approved answers.
+      reply = localAnswer(question);
+    }
+    setMessages((m) => [...m, { role: "assistant", content: reply }]);
+    setBusy(false);
+  }
+
+  const showSuggestions = messages.length <= 2 && !busy;
 
   return (
     <>
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-accent to-accent-soft shadow-lg transition hover:scale-110"
-        aria-label="Open chatbot"
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label={open ? "Close chat" : "Chat with FITX"}
+        aria-expanded={open}
+        className="fixed right-5 bottom-5 z-50 grid h-14 w-14 place-items-center rounded-full bg-accent text-white shadow-[0_0_40px_-8px_var(--brand-accent)] transition hover:scale-105"
       >
-        <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
+        {open ? (
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        ) : (
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H19a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 001 1.7" />
+          </svg>
+        )}
       </button>
 
-      {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 overflow-hidden rounded-brand border border-white/10 bg-ink shadow-2xl sm:w-96">
-          <div className="flex items-center justify-between bg-gradient-to-r from-accent to-accent-soft px-4 py-3">
+      {open ? (
+        <section
+          role="dialog"
+          aria-label="FITX assistant"
+          className="fixed right-3 bottom-24 left-3 z-50 flex max-h-[min(36rem,calc(100svh-8rem))] flex-col overflow-hidden rounded-2xl border border-white/12 bg-[#0b0a0e]/95 text-[#ede9e3] shadow-2xl backdrop-blur-xl sm:left-auto sm:w-[23rem]"
+        >
+          <header className="flex items-center justify-between border-b border-white/10 px-5 py-4">
             <div>
-              <p className="font-heading text-sm font-bold text-white">FITX Bot</p>
-              <p className="text-xs text-white/80">Ask me anything</p>
+              <p className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.2em] text-accent uppercase">
+                FITX assistant
+              </p>
+              <p className="mt-1 text-xs text-white/50">Fees · timings · tracking · joining</p>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+            <a
+              href={`tel:+92${studio.phones[0].slice(1).replace("-", "")}`}
+              className="rounded-full border border-white/20 px-3 py-1.5 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.15em] uppercase transition hover:border-accent hover:text-accent"
+            >
+              Call
+            </a>
+          </header>
 
-          <div className="h-80 overflow-y-auto p-4 space-y-3">
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === "user" ? "bg-accent text-white" : "bg-white/10 text-white"}`}>
-                  {msg.text}
-                </div>
+          <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
+            {messages.map((m, i) => (
+              <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+                <p
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line ${
+                    m.role === "user"
+                      ? "rounded-br-md bg-accent text-white"
+                      : "rounded-bl-md border border-white/10 bg-white/[0.04]"
+                  }`}
+                >
+                  {m.role === "assistant" ? linkify(m.content) : m.content}
+                </p>
               </div>
             ))}
-            <div ref={messagesEndRef} />
+            {busy ? (
+              <div className="flex gap-1 px-2 py-2" aria-label="Assistant is typing">
+                {[0, 1, 2].map((d) => (
+                  <span
+                    key={d}
+                    className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/50"
+                    style={{ animationDelay: `${d * 120}ms` }}
+                  />
+                ))}
+              </div>
+            ) : null}
+            {showSuggestions ? (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {suggestedQuestions.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => send(q)}
+                    className="rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/75 transition hover:border-accent hover:text-white"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          <div className="flex gap-2 border-t border-white/10 p-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void send(input);
+            }}
+            className="flex gap-2 border-t border-white/10 p-3"
+          >
             <input
-              type="text"
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Type your question..."
-              className="flex-1 rounded-brand bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-accent"
+              maxLength={600}
+              placeholder="Ask about fees, timings…"
+              aria-label="Your question"
+              className="min-w-0 flex-1 rounded-full border border-white/12 bg-white/[0.04] px-4 py-2.5 text-sm text-[#ede9e3] outline-none placeholder:text-white/35 focus:border-accent"
             />
-            <button onClick={handleSend} className="rounded-brand bg-accent px-3 py-2 text-white transition hover:bg-accent-soft">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
+            <button
+              type="submit"
+              disabled={busy || !input.trim()}
+              className="rounded-full bg-accent px-4 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.15em] text-white uppercase transition disabled:opacity-40"
+            >
+              Send
             </button>
-          </div>
-        </div>
-      )}
+          </form>
+          <p className="px-4 pb-3 text-[10px] leading-snug text-white/35">
+            Answers come from FITX&apos;s published information. Body-composition readings are estimates, not medical advice.
+          </p>
+        </section>
+      ) : null}
     </>
   );
 }
