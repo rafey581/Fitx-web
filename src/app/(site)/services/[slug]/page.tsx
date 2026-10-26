@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 import { mediaUrl } from "@/lib/media-url";
 import { serializeJsonLd } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/site/settings";
+import { defaultContent, fallbackServiceImages } from "@/components/experience/content";
 
 export const dynamic = "force-dynamic";
 
@@ -70,77 +71,79 @@ export default async function ServiceDetailPage({
     href: service.ctaUrl?.trim() || "/contact",
   };
 
+  const coverSrc = cover
+    ? mediaUrl({ path: cover.path })
+    : (defaultContent.services.find((s) => s.href === `/services/${service.slug}`)?.image ??
+      fallbackServiceImages[Math.max(0, service.sortOrder) % fallbackServiceImages.length]);
+
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
-      <Link
-        href="/services"
-        className="text-sm font-semibold text-muted transition hover:text-accent"
-      >
-        ← All services
-      </Link>
+    <main>
+      <section className="relative flex min-h-[78svh] items-end pt-36 pb-14">
+        <div className="mx-auto w-full max-w-7xl px-5 sm:px-10">
+          <Link href="/services" className="film-mono block w-fit text-[11px] text-white/50 transition hover:text-accent">
+            ← All programs
+          </Link>
+          <p className="eyebrow eyebrow-bar mt-10">Program</p>
+          <h1 className="film-display mt-5 max-w-5xl text-[13vw] md:text-[7.5vw]">{service.title}</h1>
+          {service.shortDescription ? (
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">{service.shortDescription}</p>
+          ) : null}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href={cta.href}
+              className="film-btn film-btn-hot"
+              {...(cta.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            >
+              {cta.label}
+            </a>
+            <Link href="/plans" className="film-btn">
+              See plans
+            </Link>
+          </div>
+        </div>
+      </section>
 
-      <header className="mt-6 max-w-3xl">
-        <p className="eyebrow eyebrow-bar">Programs</p>
-        <h1 className="heading-display mt-3 text-4xl text-ink sm:text-5xl">
-          {service.title}
-        </h1>
-        {service.shortDescription ? (
-          <p className="mt-4 font-serif text-lg leading-relaxed text-muted">
-            {service.shortDescription}
-          </p>
-        ) : null}
-      </header>
-
-      {cover ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={mediaUrl({ path: cover.path })}
-          alt={service.title}
-          className="mt-8 aspect-[16/9] w-full rounded-brand border border-line object-cover shadow-[0_36px_70px_-46px_rgba(13,10,16,0.65)]"
-        />
-      ) : null}
+      <section className="mx-auto w-full max-w-7xl px-5 sm:px-10">
+        <figure className="overflow-hidden rounded-brand border border-line">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={coverSrc} alt={service.title} className="aspect-[21/9] w-full object-cover" />
+        </figure>
+      </section>
 
       {contentParagraphs.length > 0 ? (
-        <div className="mt-10 max-w-3xl space-y-5">
-          {contentParagraphs.map((paragraph, index) => (
-            <p
-              key={index}
-              className="font-serif text-lg leading-relaxed text-ink/80"
-            >
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      ) : null}
-
-      {galleryByIndex.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="heading-display text-xl text-ink">Gallery</h2>
-          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-3">
-            {galleryByIndex.map((image) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={image.id}
-                src={mediaUrl({ path: image.path })}
-                alt={service.title}
-                className="aspect-square w-full rounded-brand border border-line object-cover"
-              />
+        <section className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-24 sm:px-10 md:grid-cols-[1fr_2fr]">
+          <p className="film-mono text-[11px] text-white/50">
+            <span className="text-accent">[ 01 ]</span> The program
+          </p>
+          <div className="space-y-5">
+            {contentParagraphs.map((paragraph, index) => (
+              <p key={index} className="text-lg leading-relaxed text-ink/80">
+                {paragraph}
+              </p>
             ))}
           </div>
         </section>
       ) : null}
 
-      <div className="mt-12">
-        <a
-          href={cta.href}
-          className="btn btn-accent inline-flex"
-          {...(cta.href.startsWith("http")
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : {})}
-        >
-          {cta.label}
-        </a>
-      </div>
+      {galleryByIndex.length > 0 ? (
+        <section className="mx-auto w-full max-w-7xl px-5 pb-24 sm:px-10">
+          <p className="film-mono text-[11px] text-white/50">
+            <span className="text-accent">[ 02 ]</span> On the floor
+          </p>
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
+            {galleryByIndex.map((image) => (
+              <figure key={image.id} className="overflow-hidden rounded-brand border border-line">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={mediaUrl({ path: image.path })}
+                  alt={service.title}
+                  className="aspect-square w-full object-cover"
+                />
+              </figure>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <script
         type="application/ld+json"

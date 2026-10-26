@@ -21,6 +21,12 @@ import {
   type SectionStyle,
 } from "@/lib/sections/types";
 
+import {
+  fallbackCoachImages,
+  fallbackServiceImages,
+  galleryImages,
+  PHOTOS,
+} from "@/components/experience/content";
 import { LeadForm } from "@/components/site/lead-form";
 import { Home3DHero } from "@/components/site/Home3DHero";
 
@@ -79,7 +85,10 @@ async function SiteImage({
     // No media row yet — render an on-brand gradient panel rather than a grey
     // void, so image-less pages still look intentional.
     return (
-      <div aria-hidden="true" className={`media-placeholder ${className ?? ""}`} />
+      <div
+        aria-hidden="true"
+        className={`media-placeholder ${className ?? ""}`}
+      />
     );
   }
   const { src, width: resolvedWidth } = mediaSrc(media, width);
@@ -111,12 +120,15 @@ function Heading({
   as?: "h1" | "h2" | "h3";
 }) {
   const alignClass = align === "center" ? "text-center" : "";
-  const sizeClass = size === "lg" ? "text-4xl sm:text-6xl" : "text-3xl sm:text-5xl";
+  const sizeClass =
+    size === "lg" ? "text-4xl sm:text-6xl" : "text-3xl sm:text-5xl";
   if (!eyebrow && !heading) return null;
   return (
     <div className={alignClass}>
       {eyebrow ? (
-        <p className={`eyebrow eyebrow-bar ${align === "center" ? "justify-center" : ""}`}>
+        <p
+          className={`eyebrow eyebrow-bar ${align === "center" ? "justify-center" : ""}`}
+        >
           {eyebrow}
         </p>
       ) : null}
@@ -279,7 +291,7 @@ async function HeroSlider({
           }`}
         >
           {/* Layered backdrop: arena gradient, optional photo, grid and glow. */}
-          <div aria-hidden="true" className="absolute inset-0 bg-arena" />
+          <div aria-hidden="true" className="bg-arena absolute inset-0" />
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -290,7 +302,7 @@ async function HeroSlider({
           ) : null}
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-grid-overlay opacity-60"
+            className="bg-grid-overlay absolute inset-0 opacity-60"
           />
           <div
             aria-hidden="true"
@@ -325,9 +337,7 @@ async function HeroSlider({
             }`}
           >
             {pickStr(slide, "eyebrow") ? (
-              <span
-                className="animate-rise inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 backdrop-blur"
-              >
+              <span className="animate-rise inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 backdrop-blur">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 <span className="eyebrow">{pickStr(slide, "eyebrow")}</span>
               </span>
@@ -701,7 +711,7 @@ async function ServicesGrid({
           : "sm:grid-cols-2 lg:grid-cols-3";
 
   const cards = await Promise.all(
-    services.map(async (service) => {
+    services.map(async (service, index) => {
       const image = service.imageId ? await getMedia(service.imageId) : null;
       return (
         <Link
@@ -718,7 +728,15 @@ async function ServicesGrid({
                 className="aspect-[16/9] w-full object-cover transition duration-500 group-hover:scale-[1.05]"
               />
             ) : (
-              <div className="media-placeholder aspect-[16/9] w-full" />
+              // No CMS image yet: use a studio photo so the card is never empty.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={
+                  fallbackServiceImages[index % fallbackServiceImages.length]
+                }
+                alt=""
+                className="aspect-[16/9] w-full object-cover transition duration-500 group-hover:scale-[1.05]"
+              />
             )}
             <div
               aria-hidden="true"
@@ -787,8 +805,11 @@ async function TrainersGrid({
   });
 
   const cards = await Promise.all(
-    trainers.map(async (trainer) => {
+    trainers.map(async (trainer, index) => {
       const photo = trainer.photoId ? await getMedia(trainer.photoId) : null;
+      const portrait = photo
+        ? mediaUrl(photo)
+        : fallbackCoachImages[index % fallbackCoachImages.length];
       const specialties = Array.isArray(trainer.specialties)
         ? (trainer.specialties as unknown[]).map(String)
         : [];
@@ -796,44 +817,46 @@ async function TrainersGrid({
         <Link
           key={trainer.id}
           href={`/trainers/${trainer.slug}`}
-          className="card card-hover group flex flex-col p-6"
+          className="card card-hover group flex flex-col overflow-hidden"
         >
-          <div className="flex items-center gap-4">
-            {photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={mediaUrl(photo)}
-                alt={trainer.name}
-                className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/30 transition group-hover:ring-accent"
-              />
-            ) : (
-              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-accent to-accent-soft text-xl font-black text-white shadow-[0_16px_30px_-16px_var(--brand-glow)]">
-                {trainer.name.trim().charAt(0)}
-              </span>
-            )}
-            <div>
-              <h3 className="heading-display text-base transition group-hover:text-accent">
-                {trainer.name}
-              </h3>
-              {trainer.title ? (
-                <p className="eyebrow mt-1">{trainer.title}</p>
-              ) : null}
-            </div>
+          <div className="relative overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={portrait}
+              alt={trainer.name}
+              className="aspect-[4/5] w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-ink/85 via-transparent to-transparent"
+            />
           </div>
-          {trainer.bio ? (
-            <p className="mt-4 text-sm leading-relaxed text-muted">
-              {trainer.bio}
-            </p>
-          ) : null}
-          {specialties.length > 0 ? (
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {specialties.map((specialty) => (
-                <li key={specialty} className="chip">
-                  {specialty}
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <div className="flex flex-1 flex-col p-6">
+            <div>
+              <div>
+                <h3 className="heading-display text-base transition group-hover:text-accent">
+                  {trainer.name}
+                </h3>
+                {trainer.title ? (
+                  <p className="eyebrow mt-1">{trainer.title}</p>
+                ) : null}
+              </div>
+            </div>
+            {trainer.bio ? (
+              <p className="mt-4 text-sm leading-relaxed text-muted">
+                {trainer.bio}
+              </p>
+            ) : null}
+            {specialties.length > 0 ? (
+              <ul className="mt-4 flex flex-wrap gap-2">
+                {specialties.map((specialty) => (
+                  <li key={specialty} className="chip">
+                    {specialty}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
         </Link>
       );
     }),
@@ -897,16 +920,14 @@ async function PlansGrid({
                 <>
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 bg-grid-overlay opacity-40"
+                    className="bg-grid-overlay absolute inset-0 opacity-40"
                   />
                   <p className="eyebrow absolute top-6 right-6 rounded-full bg-accent px-3 py-1 text-white">
                     Most popular
                   </p>
                 </>
               ) : null}
-              <h3 className="heading-display relative text-xl">
-                {plan.name}
-              </h3>
+              <h3 className="heading-display relative text-xl">{plan.name}</h3>
               <p className="relative mt-4">
                 <span
                   className={`font-heading text-4xl font-extrabold ${
@@ -1035,7 +1056,7 @@ async function Testimonials({
       <div className="relative overflow-hidden">
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-grid-overlay opacity-40"
+          className="bg-grid-overlay absolute inset-0 opacity-40"
         />
         <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
           <Heading
@@ -1072,7 +1093,7 @@ async function StatsBar({
       <div className="relative overflow-hidden">
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-grid-overlay opacity-40"
+          className="bg-grid-overlay absolute inset-0 opacity-40"
         />
         <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
           <Heading
@@ -1114,7 +1135,7 @@ async function CtaBanner({
   return (
     <SectionShell style={style} contain={false} className="p-0">
       <div className="relative overflow-hidden py-24 sm:py-32">
-        <div aria-hidden="true" className="absolute inset-0 bg-arena" />
+        <div aria-hidden="true" className="bg-arena absolute inset-0" />
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -1130,7 +1151,7 @@ async function CtaBanner({
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-grid-overlay opacity-50"
+          className="bg-grid-overlay absolute inset-0 opacity-50"
         />
         <div
           aria-hidden="true"
@@ -1740,6 +1761,41 @@ async function Gallery({
       select: { id: true, mediaId: true, externalUrl: true, caption: true },
     });
     cells = fromModule(rows);
+  }
+
+  if (cells.length === 0) {
+    // Nothing in the gallery module yet: show the studio's own photo set.
+    const studio = [
+      ...galleryImages,
+      PHOTOS.floorWide,
+      PHOTOS.padsKick,
+      PHOTOS.curlTrainer,
+    ];
+    return (
+      <SectionShell style={style}>
+        <Heading
+          eyebrow={pickStr(content, "eyebrow")}
+          heading={pickStr(content, "heading")}
+          slash={pickBool(content, "showAccentSlash", true)}
+        />
+        <div className="mt-10 columns-2 gap-4 lg:columns-3">
+          {studio.map((src, index) => (
+            <figure
+              key={src}
+              className="group mb-4 break-inside-avoid overflow-hidden rounded-brand border border-line"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={`Inside FITX ${index + 1}`}
+                loading="lazy"
+                className="w-full object-cover transition duration-700 group-hover:scale-[1.05]"
+              />
+            </figure>
+          ))}
+        </div>
+      </SectionShell>
+    );
   }
 
   const figures = await Promise.all(

@@ -1,97 +1,68 @@
-import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { Inter, Montserrat, Playfair_Display } from "next/font/google";
-import { permanentRedirect, redirect } from "next/navigation";
-import Script from "next/script";
+import { JetBrains_Mono } from "next/font/google";
 
-import { env } from "@/lib/env";
-import { prisma } from "@/lib/db";
-import { mediaUrl } from "@/lib/media-url";
-import { getSiteSettings, type SiteSettings } from "@/lib/site/settings";
-import { themeToCss } from "@/lib/theme/tokens";
-import { SiteFooter } from "@/components/site/site-footer";
+import { MenuLocation } from "@/generated/prisma/enums";
+import { getMenuLinks, getSiteSettings } from "@/lib/site/settings";
 import { AIChatbot } from "@/components/chatbot/ai-chatbot";
+import { FilmShell, type ShellLink } from "@/components/site/film-shell";
+import { SiteFooter } from "@/components/site/site-footer";
 
-import "../globals.css";
-
-const headingFont = Montserrat({
+const monoFont = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-heading",
-  weight: ["400", "600", "700", "800", "900"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
   display: "swap",
 });
 
-const bodyFont = Inter({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap",
-});
-
-const serifFont = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-export const metadata = {
-  title: "FITX Personal Fitness Training Studio",
-  description: "The most premium personal training program in Sahiwal, Punjab",
-};
-
+/**
+ * Inner pages share the home film's world: a dark 3D backdrop, HUD header and
+ * full-screen menu. The root layout owns <html>/<body>, theme CSS and SEO
+ * defaults; this layout only adds the shell around the page content.
+ */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings();
+  const general = settings.general;
+  const header = await getMenuLinks(MenuLocation.HEADER);
 
-  const seo = {
-    title: "FITX Personal Fitness Training Studio",
-    description: "The most premium personal training program in Sahiwal, Punjab",
-  } as const;
+  const links: ShellLink[] = [
+    ...header.map((l) => ({
+      label: l.label,
+      href: l.href,
+      children: l.children.map((c) => ({ label: c.label, href: c.href })),
+    })),
+  ];
+  if (!links.some((l) => l.href === "/blog")) {
+    links.push({ label: "Blog", href: "/blog", children: [] });
+  }
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    name: "FITX Personal Fitness Training Studio",
-    description: "The most premium personal training program",
-    address: settings?.general?.address || "Sahiwal, Punjab, Pakistan",
-    telephone: settings?.general?.phone || "+92 300 0000000",
-    geo: {
-      latitude: 30.9878,
-      longitude: 73.0473,
-    },
+    name: general.businessName,
+    address: general.address || "Sahiwal, Punjab, Pakistan",
+    telephone: general.phone || undefined,
+    geo: { "@type": "GeoCoordinates", latitude: 30.6682, longitude: 73.1114 },
   };
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{seo.title}</title>
-        <meta name="description" content={seo.description} />
-        <link rel="icon" href="/favicon.ico" />
-      </head>
+    <div className={`${monoFont.variable} film-root film-site w-full`}>
+      <FilmShell
+        links={links}
+        businessName={general.businessName}
+        address={general.address}
+        phone={general.phone}
+        email={general.email}
+      />
 
-      <body className="font-body antialiased">
-        <div className="bg-3d-gradient" />
-        <div className="scanlines" />
-        <div className="vignette" />
-        <div className="cube-3d" style={{ top: "20%", left: "10%", width: "80px", height: "80px", background: "var(--brand-accent)" }} />
-        <div className="cube-3d" style={{ top: "50%", left: "70%", width: "60px", height: "60px", background: "var(--brand-navy)", animationDelay: "2s" }} />
-        <div className="cube-3d" style={{ top: "80%", left: "30%", width: "100px", height: "100px", background: "var(--brand-accent)", animationDelay: "4s" }} />
-        <div className="cube-3d" style={{ top: "10%", left: "80%", width: "50px", height: "50px", background: "rgba(255,215,0,0.5)", animationDelay: "1s" }} />
-        <div className="cube-3d" style={{ top: "60%", left: "10%", width: "70px", height: "70px", background: "var(--brand-navy)", animationDelay: "3s" }} />
-
-        <div id="main-content" className="relative z-10 min-h-full">
-          {children}
-        </div>
-
+      <div id="main-content" className="relative z-10">
+        {children}
         <SiteFooter />
+      </div>
 
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
-
-        <AIChatbot />
-      </body>
-    </html>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <AIChatbot />
+    </div>
   );
 }

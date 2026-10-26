@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { mediaUrl } from "@/lib/media-url";
+import { fallbackCoachImages } from "@/components/experience/content";
 import { serializeJsonLd } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -86,43 +87,33 @@ export default async function TrainerDetailPage({
     if (url) socials.push({ label, url });
   }
 
-  return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
-      <Link
-        href="/trainers"
-        className="text-sm font-semibold text-muted transition hover:text-accent"
-      >
-        ← All trainers
-      </Link>
+  // Same fallback photo as this coach's card on /coaches (position in the
+  // published list), so the card and the profile always match.
+  const order = photo
+    ? []
+    : await prisma.trainer.findMany({
+        where: { isPublished: true },
+        orderBy: { sortOrder: "asc" },
+        select: { id: true },
+      });
+  const position = Math.max(0, order.findIndex((t) => t.id === trainer.id));
+  const portrait = photo
+    ? mediaUrl({ path: photo.path })
+    : fallbackCoachImages[position % fallbackCoachImages.length];
+  const firstName = trainer.name.split(" ")[0];
 
-      <header className="mt-6 grid gap-8 lg:grid-cols-[280px_1fr] lg:items-start">
-        {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={mediaUrl({ path: photo.path })}
-            alt={trainer.name}
-            className="aspect-square w-full max-w-xs rounded-brand object-cover shadow-[0_30px_60px_-40px_rgba(13,10,16,0.6)] lg:max-w-none"
-          />
-        ) : (
-          <div className="media-placeholder grid aspect-square w-full max-w-xs place-items-center rounded-brand lg:max-w-none">
-            <span className="heading-display text-6xl text-white">
-              {trainer.name.trim().charAt(0)}
-            </span>
-          </div>
-        )}
+  return (
+    <main>
+      <section className="mx-auto grid min-h-[86svh] w-full max-w-7xl items-end gap-10 px-5 pt-32 pb-16 sm:px-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <p className="eyebrow eyebrow-bar">Trainer</p>
-          <h1 className="heading-display mt-3 text-4xl text-ink sm:text-5xl">
-            {trainer.name}
-          </h1>
-          {trainer.title ? (
-            <p className="mt-2 font-serif text-lg text-accent">
-              {trainer.title}
-            </p>
-          ) : null}
+          <Link href="/coaches" className="film-mono block w-fit text-[11px] text-white/50 transition hover:text-accent">
+            ← All coaches
+          </Link>
+          <p className="eyebrow eyebrow-bar mt-10">{trainer.title || "Coach"}</p>
+          <h1 className="film-display mt-5 text-[14vw] md:text-[7vw]">{trainer.name}</h1>
 
           {specialties.length > 0 ? (
-            <ul className="mt-5 flex flex-wrap gap-2">
+            <ul className="mt-6 flex flex-wrap gap-2">
               {specialties.map((specialty) => (
                 <li key={specialty} className="chip">
                   {specialty}
@@ -132,16 +123,13 @@ export default async function TrainerDetailPage({
           ) : null}
 
           {trainer.bio ? (
-            <div className="mt-6 max-w-2xl space-y-4">
+            <div className="mt-6 max-w-xl space-y-4">
               {trainer.bio
                 .split(/\n{2,}/)
                 .map((paragraph) => paragraph.trim())
                 .filter(Boolean)
                 .map((paragraph, index) => (
-                  <p
-                    key={index}
-                    className="font-serif text-lg leading-relaxed text-ink/80"
-                  >
+                  <p key={index} className="text-lg leading-relaxed text-ink/80">
                     {paragraph}
                   </p>
                 ))}
@@ -149,68 +137,50 @@ export default async function TrainerDetailPage({
           ) : null}
 
           {certifications.length > 0 ? (
-            <div className="mt-8">
-              <h2 className="font-heading text-sm font-bold text-muted uppercase">
-                Certifications
-              </h2>
-              <ul className="mt-3 space-y-1">
-                {certifications.map((certification) => (
-                  <li
-                    key={certification}
-                    className="flex items-center gap-2 text-sm text-ink"
-                  >
-                    <span className="text-accent">✓</span> {certification}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ul className="film-mono mt-8 space-y-1.5 text-[11px] text-white/60">
+              {certifications.map((certification) => (
+                <li key={certification} className="flex items-center gap-2">
+                  <span className="text-accent">✓</span> {certification}
+                </li>
+              ))}
+            </ul>
           ) : null}
 
-          {socials.length > 0 ? (
-            <div className="mt-8 flex flex-wrap gap-3">
-              {socials.map(({ label, url }) => (
-                <a
-                  key={label}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border border-line px-4 py-1.5 text-sm font-semibold text-ink transition hover:border-accent hover:text-accent"
-                >
-                  {label}
-                </a>
-              ))}
-            </div>
-          ) : null}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/contact" className="film-btn film-btn-hot">
+              Train with {firstName}
+            </Link>
+            {socials.map(({ label, url }) => (
+              <a key={label} href={url} target="_blank" rel="noopener noreferrer" className="film-btn">
+                {label} ↗
+              </a>
+            ))}
+          </div>
         </div>
-      </header>
+
+        <figure className="overflow-hidden rounded-brand border border-line">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={portrait} alt={trainer.name} className="aspect-[4/5] w-full object-cover" />
+        </figure>
+      </section>
 
       {classes.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="heading-display text-xl text-ink">
-            Classes with {trainer.name.split(" ")[0]}
-          </h2>
-          <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="mx-auto w-full max-w-7xl px-5 pb-24 sm:px-10">
+          <p className="film-mono text-[11px] text-white/50">
+            <span className="text-accent">[ 01 ]</span> Classes with {firstName}
+          </p>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {classes.map((entry) => (
-              <li
-                key={entry.id}
-                className="card card-hover p-4"
-              >
-                <p className="font-semibold text-ink">{entry.title}</p>
-                <p className="mt-1 text-xs font-semibold tracking-wide text-muted uppercase">
-                  {DAY_NAMES[entry.dayOfWeek] ?? `Day ${entry.dayOfWeek}`} ·{" "}
-                  {entry.startTime}–{entry.endTime}
+              <li key={entry.id} className="card card-hover p-5">
+                <p className="heading-display text-lg text-ink">{entry.title}</p>
+                <p className="film-mono mt-2 text-[10px] text-white/50">
+                  {DAY_NAMES[entry.dayOfWeek] ?? `Day ${entry.dayOfWeek}`} · {entry.startTime}–{entry.endTime}
                 </p>
               </li>
             ))}
           </ul>
         </section>
       ) : null}
-
-      <div className="mt-12">
-        <Link href="/contact" className="btn btn-accent inline-flex">
-          Train with {trainer.name.split(" ")[0]}
-        </Link>
-      </div>
 
       <script
         type="application/ld+json"

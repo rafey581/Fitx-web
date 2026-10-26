@@ -44,7 +44,7 @@ const blogPosts = [
 
 export default function BlogPage() {
   return (
-    <main id="main-content">
+    <main>
       <section className="relative overflow-hidden bg-ink py-24 sm:py-32">
         <div aria-hidden="true" className="absolute inset-0 bg-arena" />
         <div aria-hidden="true" className="absolute inset-0 bg-grid-overlay opacity-40" />

@@ -129,7 +129,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <main id="main-content">
+    <main>
       <article>
         <section className="relative overflow-hidden bg-ink py-24 sm:py-32">
           <div aria-hidden="true" className="absolute inset-0 bg-arena" />

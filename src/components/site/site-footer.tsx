@@ -46,89 +46,82 @@ export async function SiteFooter() {
   ].filter(([, value]) => value) as Array<[string, string]>;
 
   return (
-    <footer className="relative overflow-hidden bg-footer text-white">
-      <div aria-hidden="true" className="footer-glow absolute inset-0" />
-      <div
-        aria-hidden="true"
-        className="bg-grid-overlay absolute inset-0 opacity-25"
-      />
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6">
-        <div className="grid gap-12 md:grid-cols-3">
+    <footer className="film-footer relative mt-24 overflow-hidden">
+      <div className="mx-auto w-full max-w-7xl px-5 pt-20 pb-10 sm:px-10">
+        <p className="film-mono text-[11px] text-white/50">
+          <span className="text-accent">[ ∞ ]</span> Your move
+        </p>
+        <Link href="/contact" className="group mt-6 block">
+          <span className="film-display block text-[15vw] leading-[0.85] md:text-[8vw]">
+            Start <span className="whitespace-nowrap text-accent">
+              training
+              <span
+                aria-hidden="true"
+                className="ml-[0.2em] inline-block text-[0.6em] align-middle transition-transform duration-500 group-hover:translate-x-4"
+              >
+                →
+              </span>
+            </span>
+          </span>
+        </Link>
+
+        <div className="film-mono mt-16 grid gap-10 border-t border-white/10 pt-10 text-[11px] text-white/60 md:grid-cols-4">
           <div>
-            <p className="heading-display text-2xl">{general.businessName}</p>
-            {general.tagline ? (
-              <p className="mt-4 max-w-sm font-serif text-sm leading-relaxed text-white/60">
-                {general.tagline}
-              </p>
-            ) : null}
-            {socials.length > 0 ? (
-              <ul className="mt-6 flex flex-wrap gap-2.5">
-                {socials.map((social) => (
-                  <li key={social.key}>
-                    <a
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center rounded-full border border-white/15 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white/75 uppercase transition hover:border-accent hover:text-accent"
-                    >
-                      {social.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <p className="text-white/30">Studio</p>
+            <p className="mt-2 text-white/80">{general.businessName}</p>
+            {general.tagline ? <p className="mt-2 normal-case tracking-normal">{general.tagline}</p> : null}
           </div>
 
-          <div>
-            <p className="eyebrow eyebrow-bar">Quick links</p>
-            <ul className="mt-5 space-y-2.5">
+          <nav aria-label="Footer">
+            <p className="text-white/30">Index</p>
+            <ul className="mt-2 space-y-1.5">
               {links.map((link) => (
                 <li key={link.id}>
                   <a
                     href={link.href}
                     target={link.newTab ? "_blank" : undefined}
                     rel={link.newTab ? "noopener noreferrer" : undefined}
-                    className="text-sm text-white/70 transition hover:text-accent"
+                    className="transition hover:text-accent"
                   >
                     {link.label}
                   </a>
-                  {link.children.map((child) => (
-                    <span key={child.id}>
-                      {" "}
-                      ·{" "}
-                      <a
-                        href={child.href}
-                        className="text-sm text-white/40 transition hover:text-accent"
-                      >
-                        {child.label}
-                      </a>
-                    </span>
-                  ))}
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
+
+          <address className="not-italic">
+            <p className="text-white/30">Find us</p>
+            {general.address ? <p className="mt-2">{general.address}</p> : null}
+            {contactRows.map(([label, value]) => (
+              <p key={label} className="mt-1.5">
+                <span className="text-white/35">{label} · </span>
+                {value}
+              </p>
+            ))}
+          </address>
 
           <div>
-            <p className="eyebrow eyebrow-bar">Find us</p>
-            <address className="mt-5 space-y-3 text-sm text-white/70 not-italic">
-              {general.address ? <p>{general.address}</p> : null}
-              {contactRows.map(([label, value]) => (
-                <p key={label}>
-                  <span className="font-semibold text-white/90">{label}:</span>{" "}
-                  {value}
-                </p>
-              ))}
-            </address>
+            <p className="text-white/30">Follow</p>
+            {socials.length > 0 ? (
+              <ul className="mt-2 space-y-1.5">
+                {socials.map((social) => (
+                  <li key={social.key}>
+                    <a href={social.href} target="_blank" rel="noopener noreferrer" className="transition hover:text-accent">
+                      {social.label} ↗
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2">30.6682° N · 73.1114° E</p>
+            )}
           </div>
         </div>
-      </div>
 
-      <div className="relative border-t border-white/10">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-white/40 sm:px-6">
+        <div className="film-mono mt-12 flex flex-wrap items-center justify-between gap-2 text-[10px] text-white/35">
           <p>
-            © {new Date().getFullYear()} {general.businessName}. All rights
-            reserved.
+            © {new Date().getFullYear()} {general.businessName}
           </p>
           <Link href="/admin" className="transition hover:text-accent">
             Staff login
