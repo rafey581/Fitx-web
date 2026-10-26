@@ -1,0 +1,433 @@
+// FITX Gym Sahiwal - Prisma schema (MySQL 8 / MariaDB 10.5+)
+// See README "Data model & publishing model" for the draft/publish approach.
+//
+// Conventions:
+//  - Primary keys are CUID strings (JSON-safe, no BigInt serialization issues).
+//  - All tables carry created/updated timestamps.
+//  - Section `type` is a plain string so new block types never need a migration.
+//  - The datasource URL lives in prisma7.config.ts (Prisma 7 convention).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  EDITOR
+  FRONTDESK
+}
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+}
+
+enum MenuLocation {
+  HEADER
+  FOOTER
+}
+
+enum LinkType {
+  PAGE
+  URL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  CLOSED
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// ---------------------------------------------------------------------------
+// Core: users, pages, sections, versions
+// ---------------------------------------------------------------------------
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String
+  email              String    @unique
+  passwordHash       String    @map("password_hash")
+  role               Role      @default(EDITOR)
+  isActive           Boolean   @default(true) @map("is_active")
+  lastLoginAt        DateTime? @map("last_login_at")
+  resetTokenHash     String?   @map("reset_token_hash")
+  resetTokenExpiresAt DateTime? @map("reset_token_expires_at")
+  failedLoginCount   Int       @default(0) @map("failed_login_count")
+  lockedUntil        DateTime? @map("locked_until")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  uploadedMedia Media[]       @relation("UploadedBy")
+  pageVersions  PageVersion[]
+  auditLogs     AuditLog[]
+  blogPosts     BlogPost[]
+
+  @@map("users")
+}
+
+model Page {
+  id                    String     @id @default(cuid())
+  title                 String
+  slug                  String     @unique
+  status                PageStatus @default(DRAFT)
+  publishAt             DateTime?  @map("publish_at")
+  isHome                Boolean    @default(false) @map("is_home")
+  seoTitle              String?    @map("seo_title")
+  seoDescription        String?    @map("seo_description")
+  ogImageId             String?    @map("og_image_id")
+  noindex               Boolean    @default(false)
+  // Publishing model (see README): `pages` stores the live metadata,
+  // `page_versions` stores immutable published snapshots of the sections.
+  hasUnpublishedChanges Boolean    @default(false) @map("has_unpublished_changes")
+  publishedAt           DateTime?  @map("published_at")
+  publishedVersionId    String?    @map("published_version_id")
+  draftUpdatedAt        DateTime   @default(now()) @map("draft_updated_at")
+  deletedAt             DateTime?  @map("deleted_at")
+  createdAt             DateTime   @default(now()) @map("created_at")
+  updatedAt             DateTime   @updatedAt @map("updated_at")
+
+  ogImage     Media?        @relation("PageOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  sections    Section[]
+  versions    PageVersion[]
+  menuItems   MenuItem[]
+
+  @@index([status, deletedAt])
+  @@map("pages")
+}
+
+model Section {
+  id                String  @id @default(cuid())
+  pageId            String  @map("page_id")
+  type              String
+  sortOrder         Int     @default(0) @map("sort_order")
+  // Draft working copy. Published output is a snapshot in PageVersion.
+  content           Json
+  style             Json    @default("{}")
+  isVisible         Boolean @default(true) @map("is_visible")
+  visibilityDevices String  @default("all") @map("visibility_devices")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, sortOrder])
+  @@map("sections")
+}
+
+model PageVersion {
+  id        String   @id @default(cuid())
+  pageId    String   @map("page_id")
+  label     String?
+  snapshot  Json
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  page Page  @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([pageId, createdAt])
+  @@map("page_versions")
+}
+
+// ---------------------------------------------------------------------------
+// Media
+// ---------------------------------------------------------------------------
+
+model Media {
+  id         String   @id @default(cuid())
+  filename   String
+  path       String
+  mime       String
+  size       Int
+  width      Int?
+  height     Int?
+  alt        String?
+  caption    String?
+  folder     String   @default("general")
+  variants   Json     @default("{}")
+  uploadedBy String?  @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  uploader           User?               @relation("UploadedBy", fields: [uploadedBy], references: [id], onDelete: SetNull)
+  pageOgImages       Page[]              @relation("PageOgImage")
+  trainers           Trainer[]           @relation("TrainerPhoto")
+  servicesIcon       Service[]           @relation("ServiceIcon")
+  servicesImage      Service[]           @relation("ServiceImage")
+  testimonialsPhoto  Testimonial[]       @relation("TestimonialPhoto")
+  testimonialsBefore Testimonial[]       @relation("TestimonialBefore")
+  testimonialsAfter  Testimonial[]       @relation("TestimonialAfter")
+  galleryItems       GalleryItem[]
+  blogCovers         BlogPost[]          @relation("BlogCover")
+  instagramItems     InstagramHighlight[]
+
+  @@index([folder])
+  @@map("media")
+}
+
+// ---------------------------------------------------------------------------
+// Content modules
+// ---------------------------------------------------------------------------
+
+model Trainer {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  title          String?
+  photoId        String?  @map("photo_id")
+  bio            String?  @db.LongText
+  specialties    Json     @default("[]")
+  certifications Json     @default("[]")
+  facebookUrl    String?  @map("facebook_url")
+  instagramUrl   String?  @map("instagram_url")
+  twitterUrl     String?  @map("twitter_url")
+  youtubeUrl     String?  @map("youtube_url")
+  seoTitle       String?  @map("seo_title")
+  seoDescription String?  @map("seo_description")
+  sortOrder      Int      @default(0) @map("sort_order")
+  isPublished    Boolean  @default(true) @map("is_published")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  photo          Media?            @relation("TrainerPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  timetableEntries TimetableEntry[]
+
+  @@index([isPublished, sortOrder])
+  @@map("trainers")
+}
+
+model Service {
+  id               String   @id @default(cuid())
+  title            String
+  slug             String   @unique
+  shortDescription String?  @map("short_description")
+  content          String?  @db.LongText
+  iconId           String?  @map("icon_id")
+  imageId          String?  @map("image_id")
+  gallery          Json     @default("[]")
+  ctaLabel         String?  @map("cta_label")
+  ctaUrl           String?  @map("cta_url")
+  seoTitle         String?  @map("seo_title")
+  seoDescription   String?  @map("seo_description")
+  sortOrder        Int      @default(0) @map("sort_order")
+  isPublished      Boolean  @default(true) @map("is_published")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  icon  Media? @relation("ServiceIcon", fields: [iconId], references: [id], onDelete: SetNull)
+  image Media? @relation("ServiceImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, sortOrder])
+  @@map("services")
+}
+
+model Plan {
+  id            String   @id @default(cuid())
+  name          String
+  price         Decimal? @db.Decimal(10, 2)
+  currency      String   @default("PKR")
+  billingPeriod String?  @map("billing_period")
+  features      Json     @default("[]")
+  isHighlighted Boolean  @default(false) @map("is_highlighted")
+  ctaLabel      String?  @map("cta_label")
+  ctaUrl        String?  @map("cta_url")
+  sortOrder     Int      @default(0) @map("sort_order")
+  isPublished   Boolean  @default(true) @map("is_published")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublished, sortOrder])
+  @@map("plans")
+}
+
+model Testimonial {
+  id            String   @id @default(cuid())
+  name          String
+  quote         String   @db.Text
+  photoId       String?  @map("photo_id")
+  rating        Int?     @default(5)
+  beforeImageId String?  @map("before_image_id")
+  afterImageId  String?  @map("after_image_id")
+  sortOrder     Int      @default(0) @map("sort_order")
+  isPublished   Boolean  @default(true) @map("is_published")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  photo       Media? @relation("TestimonialPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  beforeImage Media? @relation("TestimonialBefore", fields: [beforeImageId], references: [id], onDelete: SetNull)
+  afterImage  Media? @relation("TestimonialAfter", fields: [afterImageId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, sortOrder])
+  @@map("testimonials")
+}
+
+model GalleryItem {
+  id          String   @id @default(cuid())
+  mediaId     String?  @map("media_id")
+  externalUrl String?  @map("external_url")
+  category    String   @default("general")
+  caption     String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  media Media? @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+
+  @@index([category, isPublished, sortOrder])
+  @@map("gallery_items")
+}
+
+model TimetableEntry {
+  id         String   @id @default(cuid())
+  dayOfWeek  Int      @map("day_of_week")
+  startTime  String   @map("start_time")
+  endTime    String   @map("end_time")
+  title      String
+  trainerId  String?  @map("trainer_id")
+  sortOrder  Int      @default(0) @map("sort_order")
+  isPublished Boolean @default(true) @map("is_published")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  trainer Trainer? @relation(fields: [trainerId], references: [id], onDelete: SetNull)
+
+  @@index([dayOfWeek, sortOrder])
+  @@map("timetable_entries")
+}
+
+model BlogPost {
+  id             String     @id @default(cuid())
+  title          String
+  slug           String     @unique
+  coverId        String?    @map("cover_id")
+  excerpt        String?
+  content        String?    @db.LongText
+  category       String?
+  authorId       String?    @map("author_id")
+  status         PostStatus @default(DRAFT)
+  publishedAt    DateTime?  @map("published_at")
+  seoTitle       String?    @map("seo_title")
+  seoDescription String?    @map("seo_description")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  cover  Media? @relation("BlogCover", fields: [coverId], references: [id], onDelete: SetNull)
+  author User?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+  @@map("blog_posts")
+}
+
+model InstagramHighlight {
+  id          String   @id @default(cuid())
+  imageId     String?  @map("image_id")
+  link        String?
+  caption     String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  isPublished Boolean  @default(true) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  image Media? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, sortOrder])
+  @@map("instagram_highlights")
+}
+
+// ---------------------------------------------------------------------------
+// Navigation, settings, leads, redirects, audit
+// ---------------------------------------------------------------------------
+
+model MenuItem {
+  id       String       @id @default(cuid())
+  menu     MenuLocation @default(HEADER)
+  parentId String?      @map("parent_id")
+  label    String
+  linkType LinkType     @default(PAGE) @map("link_type")
+  pageId   String?      @map("page_id")
+  url      String?
+  sortOrder Int         @default(0) @map("sort_order")
+  newTab   Boolean      @default(false) @map("new_tab")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  parent   MenuItem?  @relation("MenuChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuItem[] @relation("MenuChildren")
+  page     Page?      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([menu, sortOrder])
+  @@map("menu_items")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  group     String   @default("general")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("settings")
+}
+
+model Lead {
+  id         String     @id @default(cuid())
+  name       String
+  phone      String
+  email      String?
+  goal       String?
+  message    String?    @db.Text
+  sourcePage String?    @map("source_page")
+  status     LeadStatus @default(NEW)
+  notes      String?    @db.Text
+  ip         String?
+  userAgent  String?    @map("user_agent")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@map("leads")
+}
+
+model Redirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique @map("from_path")
+  toPath    String   @map("to_path")
+  code      Int      @default(301)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("redirects")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  meta      Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

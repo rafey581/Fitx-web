@@ -1,0 +1,565 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens.
+ *
+ * Defaults live here; the admin Theme Settings page overrides them at runtime by
+ * injecting `:root { --brand-*: ... }` (see src/lib/theme/tokens.ts).
+ * Tailwind utilities (bg-accent, font-heading, rounded-brand, ...) are mapped to
+ * these variables with `@theme inline` below.
+ *
+ * The `derived` tones are NOT admin-editable: they are computed from the brand
+ * accent so that changing one colour in the admin still yields a coherent,
+ * high-energy palette (gradients, glows, hairlines).
+ */
+:root {
+  --brand-accent: #ff4b00;
+  --brand-navy: #1e2330;
+  --brand-ink: #0d0a10;
+  --brand-footer: #0d0a10;
+  --brand-background: #ffffff;
+  --brand-foreground: #171717;
+  --brand-muted: #5b5f6b;
+  --brand-font-heading:
+      var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+  --brand-font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --brand-font-serif: var(--font-serif), ui-serif, Georgia, serif;
+  --brand-radius: 0.5rem;
+
+  /* Derived tones — follow --brand-accent automatically. */
+  --brand-accent-soft: color-mix(in srgb, var(--brand-accent) 68%, #ffc24b);
+  --brand-accent-deep: color-mix(in srgb, var(--brand-accent) 82%, #6d1200);
+  --brand-glow: color-mix(in srgb, var(--brand-accent) 42%, transparent);
+  --brand-line: color-mix(in srgb, var(--brand-ink) 12%, transparent);
+  --brand-line-strong: color-mix(in srgb, var(--brand-ink) 24%, transparent);
+  --brand-surface: #ffffff;
+  --brand-surface-2: color-mix(in srgb, var(--brand-ink) 4%, #ffffff);
+}
+
+@theme inline {
+  --color-accent: var(--brand-accent);
+  --color-accent-soft: var(--brand-accent-soft);
+  --color-accent-deep: var(--brand-accent-deep);
+  --color-navy: var(--brand-navy);
+  --color-ink: var(--brand-ink);
+  --color-footer: var(--brand-footer);
+  --color-background: var(--brand-background);
+  --color-foreground: var(--brand-foreground);
+  --color-muted: var(--brand-muted);
+  --color-line: var(--brand-line);
+  --color-surface: var(--brand-surface);
+
+  --font-heading: var(--brand-font-heading);
+  --font-body: var(--brand-font-body);
+  --font-serif: var(--brand-font-serif);
+
+  --radius-brand: var(--brand-radius);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--brand-background);
+  color: var(--brand-foreground);
+  font-family: var(--brand-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--brand-accent);
+  color: #fff;
+}
+
+/* ---------------------------------------------------------------------------
+ * Shared site primitives (PRD 16.3: eyebrow + heading + slash) — reimagined
+ * for a bold, energetic studio look.
+ * ------------------------------------------------------------------------- */
+
+.eyebrow {
+  color: var(--brand-accent);
+  font-family: var(--brand-font-heading);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* Opt-in short accent rule before an eyebrow (used on section headings). */
+.eyebrow-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.eyebrow-bar::before {
+  content: "";
+  width: 1.75rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+.heading-display {
+  font-family: var(--brand-font-heading);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.03;
+  text-wrap: balance;
+}
+
+/* Orange slash that follows display headings on the reference site. */
+.heading-slash::after {
+  content: "/";
+  color: var(--brand-accent);
+  margin-left: 0.15em;
+}
+
+/* --- Buttons -------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 9999px;
+  font-family: var(--brand-font-heading);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 1rem 1.85rem;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 220ms ease,
+    transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.btn-accent {
+  background-color: var(--brand-accent);
+  background-image: linear-gradient(
+    135deg,
+    var(--brand-accent),
+    var(--brand-accent-soft)
+  );
+  color: #fff;
+  box-shadow: 0 16px 34px -16px var(--brand-glow);
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 46px -18px var(--brand-glow);
+}
+
+.btn-outline {
+  border: 1px solid currentColor;
+  background: transparent;
+}
+
+.btn-outline:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.btn-light {
+  background: #fff;
+  color: var(--brand-ink);
+  box-shadow: 0 16px 34px -20px rgba(0, 0, 0, 0.5);
+}
+
+.btn-light:hover {
+  transform: translateY(-2px);
+}
+
+/* --- Backgrounds ---------------------------------------------------------- */
+
+/* Deep "arena" gradient used by hero and dark bands. */
+.bg-arena {
+  background-color: var(--brand-ink);
+  background-image:
+    radial-gradient(
+      120% 120% at 12% 108%,
+      color-mix(in srgb, var(--brand-accent) 42%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      90% 90% at 100% 0%,
+      color-mix(in srgb, var(--brand-navy) 88%, transparent) 0%,
+      transparent 62%
+    ),
+    linear-gradient(160deg, #0a0a0e 0%, #141019 55%, #0b0a0f 100%);
+}
+
+/* Faint technical grid, masked to fade out at the edges. */
+.bg-grid-overlay {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(
+    68% 68% at 50% 42%,
+    #000 0%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(68% 68% at 50% 42%, #000 0%, transparent 100%);
+}
+
+/* Grid background utility for sections */
+.bg-grid {
+  background-image: 
+    linear-gradient(#1e2330 1px, transparent 1px),
+    linear-gradient(90deg, #1e2330 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Warm accent glow for the footer band. */
+.footer-glow {
+  background-image: radial-gradient(
+    80% 80% at 12% 0%,
+    var(--brand-glow),
+    transparent 60%
+  );
+}
+
+/* Attractive stand-in used wherever a media row is missing entirely. */
+.media-placeholder {
+  background-color: var(--brand-ink);
+  background-image:
+    radial-gradient(
+      80% 100% at 15% 100%,
+      color-mix(in srgb, var(--brand-accent) 46%, transparent) 0%,
+      transparent 60%
+    ),
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size:
+    auto,
+    44px 44px,
+    44px 44px;
+}
+
+/* --- Surfaces ------------------------------------------------------------- */
+
+.card {
+  background: var(--brand-surface);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--brand-radius);
+  box-shadow:
+    0 1px 2px rgba(13, 10, 16, 0.04),
+    0 22px 44px -34px rgba(13, 10, 16, 0.45);
+}
+
+.card-hover {
+  transition:
+    transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 320ms ease,
+    border-color 320ms ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--brand-accent) 55%, var(--brand-line));
+  box-shadow: 0 26px 54px -28px var(--brand-glow);
+}
+
+.icon-tile {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1rem;
+  color: #fff;
+  background: linear-gradient(
+    140deg,
+    var(--brand-accent),
+    var(--brand-accent-deep)
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #fff 20%, transparent),
+    0 16px 30px -16px var(--brand-glow);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--brand-ink) 6%, transparent);
+  padding: 0.3rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* --- Header navigation ---------------------------------------------------- */
+
+.nav-link {
+  position: relative;
+  font-family: var(--brand-font-heading);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+  transition: color 180ms ease;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--brand-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms ease;
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: #fff;
+}
+
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* --- Type flourishes ------------------------------------------------------ */
+
+.stat-value {
+  font-family: var(--brand-font-heading);
+  font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 3.75rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    160deg,
+    var(--brand-accent),
+    var(--brand-accent-soft)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient {
+  background: linear-gradient(
+    160deg,
+    var(--brand-accent),
+    var(--brand-accent-soft)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Motion --------------------------------------------------------------- */
+
+@keyframes fitx-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: fitx-rise 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes fitx-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade {
+  animation: fitx-fade 0.9s ease both;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================================
+ * Immersive 3D Background Effects (CSS-only, no hydration issues)
+ * ============================================================================ */
+
+/* Animated gradient background that shifts over time */
+.bg-3d-gradient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 75, 0, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(30, 35, 48, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 40% 90%, rgba(255, 215, 0, 0.1) 0%, transparent 35%);
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Floating 3D cubes for immersive depth */
+.cube-3d {
+  position: fixed;
+  z-index: -1;
+  opacity: 0.6;
+  animation: float-3d infinite ease-in-out;
+}
+
+@keyframes float-3d {
+  0% {
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  25% {
+    transform: translate3d(20px, -30px, 50px) rotateX(90deg) rotateY(45deg) rotateZ(30deg);
+  }
+  50% {
+    transform: translate3d(-10px, 40px, -30px) rotateX(180deg) rotateY(90deg) rotateZ(60deg);
+  }
+  75% {
+    transform: translate3d(30px, 10px, 80px) rotateX(270deg) rotateY(135deg) rotateZ(90deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(360deg) rotateY(360deg) rotateZ(360deg);
+  }
+}
+
+/* Scroll-driven parallax layers */
+.parallax-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.parallax-layer-1 {
+  transform: translate3d(0, 0, 0);
+  opacity: 0.3;
+}
+
+.parallax-layer-2 {
+  transform: translate3d(0, -10vh, 0);
+  opacity: 0.2;
+}
+
+.parallax-layer-3 {
+  transform: translate3d(0, -20vh, 0);
+  opacity: 0.15;
+}
+
+/* Scan line overlay for cinematic 3D effect */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0) 50%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.1)
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Vignette for depth */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    rgba(13, 10, 16, 0.6) 100%
+  );
+  pointer-events: none;
+}
+
+/* Floating elements that respond to scroll */
+.floating-obj {
+  position: fixed;
+  z-index: -1;
+  opacity: 0.4;
+  animation: float-slow infinite ease-in-out;
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -40px, 30px);
+  }
+}
+
+/* 3D card tilt container */
+.card-3d-container {
+  perspective: 1000px;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+
+/* Section scroll reveals */
+.scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 40px, 0);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 3D text effect */
+.text-3d {
+  color: transparent;
+  background: linear-gradient(135deg, var(--brand-accent), var(--brand-accent-soft));
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 4px 8px rgba(255, 75, 0, 0.3);
+}
