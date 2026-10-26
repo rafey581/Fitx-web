@@ -100,7 +100,7 @@ export function Hud({
       <header className="pointer-events-auto absolute inset-x-0 top-0 flex items-center justify-between px-5 py-5 sm:px-10">
         <button type="button" onClick={() => onJump(0)} className="flex items-center gap-3" aria-label="Back to start">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/fitx/3d/logo-horizontal.png" alt="FITX" width={419} height={165} className="h-8 w-auto sm:h-9" />
+          <img src="/images/fitx/3d/logo-horizontal.png" alt="FITX" width={417} height={160} className="h-8 w-auto sm:h-9" />
         </button>
         <p className="film-mono hidden text-[11px] text-white/60 md:block">
           <span className="text-accent">{pad(chapter)}</span> — {CHAPTERS[chapter]?.label}

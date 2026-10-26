@@ -130,11 +130,13 @@ export function Emblem({
     g.rotation.x = THREE.MathUtils.damp(g.rotation.x, targetX * (1 - open), 3, delta);
     g.position.y = position[1] + Math.sin(t * 0.8) * 0.08;
 
-    ring.current.rotation.z = t * 0.06 + open * 0.6;
+    // Sway rather than spin, so the openings stay left/right like the logo.
+    ring.current.rotation.z = Math.sin(t * 0.3) * 0.08 + open * 0.6;
     ring.current.scale.setScalar(1 + open * 0.55);
 
     bell.current.position.y = lift * 5;
-    bell.current.rotation.y = t * 0.5 + lift * 3;
+    // Roll around its own length so it always reads as a horizontal dumbbell.
+    bell.current.rotation.x = t * 0.5 + lift * 3;
     bell.current.rotation.z = lift * 0.9;
     bell.current.scale.setScalar(1 - lift * 0.4);
 
@@ -145,10 +147,11 @@ export function Emblem({
     <group position={position} scale={scale}>
       <group ref={group}>
         <group ref={ring}>
-          <mesh rotation={[0, 0, -ARC / 2]} material={chrome}>
+          {/* Openings on the left and right, as in the logo. */}
+          <mesh rotation={[0, 0, Math.PI / 2 - ARC / 2]} material={chrome}>
             <torusGeometry args={[RING_R, 0.24, 32, 96, ARC]} />
           </mesh>
-          <mesh rotation={[0, 0, Math.PI - ARC / 2]} material={chrome}>
+          <mesh rotation={[0, 0, (3 * Math.PI) / 2 - ARC / 2]} material={chrome}>
             <torusGeometry args={[RING_R, 0.24, 32, 96, ARC]} />
           </mesh>
           {/* Thin glowing inner line — picked up by bloom. */}
@@ -158,7 +161,10 @@ export function Emblem({
           </mesh>
         </group>
         <group ref={bell}>
-          <Dumbbell material={orange} />
+          {/* Built upright, laid horizontal to match the logo. */}
+          <group rotation={[0, 0, Math.PI / 2]}>
+            <Dumbbell material={orange} />
+          </group>
         </group>
       </group>
       {shards > 0 ? <Shards count={shards} chrome={chrome} /> : null}
