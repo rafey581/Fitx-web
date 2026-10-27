@@ -8,6 +8,32 @@ import { film, useFilmUi } from "./store";
 
 const pad = (n: number, w = 2) => String(Math.round(n)).padStart(w, "0");
 
+/**
+ * The X from the FITX logo, traced from the logo artwork: a short upper-left
+ * arm, a main stroke, and a long lower-right tail that drops below the
+ * baseline. Units are the logo's cap height x 100; sized against the
+ * surrounding text so it lines up with the "FIT" letters.
+ */
+function LogoX() {
+  return (
+    <svg
+      viewBox="0 0 183 120"
+      aria-hidden="true"
+      className="inline-block fill-[#eb880e]"
+      style={{
+        // Montserrat's cap height is 0.7em; the X spans 1.2 cap heights.
+        height: "calc(0.7em * 1.2)",
+        width: "calc(0.7em * 1.83)",
+        marginLeft: "0.06em",
+        verticalAlign: "calc(-0.7em * 0.2)",
+      }}
+    >
+      <path d="M0 0H43.5L65 18V22.5L44 40H41L0 3.5Z" />
+      <path d="M102 0H144L100 47L183 118V120H131L74 71L41 100H0Z" />
+    </svg>
+  );
+}
+
 /** Opening card: counts to 100 while textures load, then wipes away. */
 export function Loader({ progress, ready, onDone }: { progress: number; ready: boolean; onDone: () => void }) {
   const [shown, setShown] = useState(0);
@@ -54,7 +80,9 @@ export function Loader({ progress, ready, onDone }: { progress: number; ready: b
       <div className="film-mono absolute right-5 top-6 text-[11px] text-white/50 sm:right-10">Personal training studio</div>
       <div className="flex flex-col items-center">
         <p className="film-display text-[22vw] leading-none md:text-[12vw]">
-          FIT<span className="text-accent">X</span>
+          FIT
+          <LogoX />
+          <span className="sr-only">X</span>
         </p>
         <div className="mt-6 h-px w-48 overflow-hidden bg-white/15">
           <div className="h-full bg-accent" style={{ width: `${shown}%` }} />
