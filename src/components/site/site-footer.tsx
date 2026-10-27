@@ -17,6 +17,33 @@ function profileUrl(id: string, kind: string): string {
   return `${prefixes[kind] ?? ""}${id.replace(/^@/, "")}`;
 }
 
+/** Render a contact value as tap-to-call / WhatsApp / email links where possible. */
+function contactLinks(label: string, value: string) {
+  if (label === "Hours") return <span className="text-white/85">{value}</span>;
+  if (label === "Email") {
+    return (
+      <a href={`mailto:${value}`} className="footer-link">
+        {value}
+      </a>
+    );
+  }
+  // Several numbers may be listed ("0322-… / 0300-…"): link each one.
+  const numbers = value.split(/[/·,|]/).map((n) => n.trim()).filter(Boolean);
+  return (
+    <span className="flex flex-wrap gap-x-4 gap-y-1">
+      {numbers.map((n) => {
+        const digits = n.replace(/\D/g, "").replace(/^0(?=3)/, "92");
+        const href = label === "WhatsApp" ? `https://wa.me/${digits}` : `tel:+${digits.replace(/^\+/, "")}`;
+        return (
+          <a key={n} href={href} className="footer-link" {...(label === "WhatsApp" ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+            {n}
+          </a>
+        );
+      })}
+    </span>
+  );
+}
+
 /** Global footer (PRD 5.7): contact block, footer menu, socials, copyright. */
 export async function SiteFooter() {
   const settings = await getSiteSettings();
@@ -52,7 +79,7 @@ export async function SiteFooter() {
           <span className="text-accent">[ ∞ ]</span> Your move
         </p>
         <Link href="/contact" className="group mt-6 block">
-          <span className="film-display block text-[15vw] leading-[0.85] md:text-[8vw]">
+          <span className="film-display block type-cta leading-[0.9]">
             Start <span className="whitespace-nowrap text-accent">
               training
               <span
@@ -65,65 +92,73 @@ export async function SiteFooter() {
           </span>
         </Link>
 
-        <div className="film-mono mt-16 grid gap-10 border-t border-white/10 pt-10 text-[11px] text-white/60 md:grid-cols-4">
+        <div className="mt-16 grid gap-10 border-t border-white/10 pt-10 text-[15px] leading-relaxed text-white/80 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="text-white/30">Studio</p>
-            <p className="mt-2 text-white/80">{general.businessName}</p>
-            {general.tagline ? <p className="mt-2 normal-case tracking-normal">{general.tagline}</p> : null}
+            <p className="footer-label">Studio</p>
+            <p className="mt-3 font-semibold text-white">{general.businessName}</p>
+            {general.tagline ? <p className="mt-2 text-white/65">{general.tagline}</p> : null}
           </div>
 
           <nav aria-label="Footer">
-            <p className="text-white/30">Index</p>
-            <ul className="mt-2 space-y-1.5">
+            <p className="footer-label">Explore</p>
+            <ul className="mt-3 space-y-2">
               {links.map((link) => (
                 <li key={link.id}>
-                  <a
+                  <Link
                     href={link.href}
                     target={link.newTab ? "_blank" : undefined}
                     rel={link.newTab ? "noopener noreferrer" : undefined}
-                    className="transition hover:text-accent"
+                    className="footer-link"
                   >
                     {link.label}
-                  </a>
+                    <span aria-hidden="true" className="footer-link-arrow">
+                      →
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
           </nav>
 
           <address className="not-italic">
-            <p className="text-white/30">Find us</p>
-            {general.address ? <p className="mt-2">{general.address}</p> : null}
-            {contactRows.map(([label, value]) => (
-              <p key={label} className="mt-1.5">
-                <span className="text-white/35">{label} · </span>
-                {value}
-              </p>
-            ))}
+            <p className="footer-label">Find us</p>
+            {general.address ? <p className="mt-3">{general.address}</p> : null}
+            <ul className="mt-3 space-y-2">
+              {contactRows.map(([label, value]) => (
+                <li key={label}>
+                  <span className="block text-xs text-white/55">{label}</span>
+                  {contactLinks(label, value)}
+                </li>
+              ))}
+            </ul>
           </address>
 
           <div>
-            <p className="text-white/30">Follow</p>
+            <p className="footer-label">Follow</p>
             {socials.length > 0 ? (
-              <ul className="mt-2 space-y-1.5">
+              <ul className="mt-3 space-y-2">
                 {socials.map((social) => (
                   <li key={social.key}>
-                    <a href={social.href} target="_blank" rel="noopener noreferrer" className="transition hover:text-accent">
-                      {social.label} ↗
+                    <a href={social.href} target="_blank" rel="noopener noreferrer" className="footer-link">
+                      {social.label}
+                      <span aria-hidden="true" className="footer-link-arrow">
+                        ↗
+                      </span>
                     </a>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-2">30.6682° N · 73.1114° E</p>
+              <p className="mt-3 text-white/65">Social links coming soon.</p>
             )}
           </div>
         </div>
 
-        <div className="film-mono mt-12 flex flex-wrap items-center justify-between gap-2 text-[10px] text-white/35">
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-sm text-white/60">
           <p>
             © {new Date().getFullYear()} {general.businessName}
           </p>
-          <Link href="/admin" className="transition hover:text-accent">
+          <Link href="/admin" className="footer-link text-sm">
             Staff login
           </Link>
         </div>

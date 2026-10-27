@@ -212,10 +212,10 @@ export function FilmShell({
                   {l.label}
                 </Link>
                 {l.children.length > 0 ? (
-                  <ul className="film-mono mt-1 mb-3 ml-10 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-white/50">
+                  <ul className="mt-2 mb-4 ml-10 flex flex-wrap gap-x-5 gap-y-1.5 text-[15px]">
                     {l.children.map((c) => (
                       <li key={c.href}>
-                        <Link href={c.href} className="hover:text-accent">
+                        <Link href={c.href} className="footer-link">
                           {c.label}
                         </Link>
                       </li>
@@ -225,11 +225,19 @@ export function FilmShell({
               </li>
             ))}
           </ol>
-          <div className="film-mono space-y-1 border-t border-white/15 pt-6 text-[11px] text-white/60 md:w-72 md:border-t-0 md:pt-0">
-            <p className="text-white/30">Visit</p>
+          <div className="space-y-2 border-t border-white/15 pt-6 text-[15px] text-white/80 md:w-72 md:border-t-0 md:pt-0">
+            <p className="footer-label">Visit</p>
             <p>{address}</p>
-            <p>{phone}</p>
-            <p>{email}</p>
+            <p>
+              {phone.split(/[/·,|]/).map((n) => n.trim()).filter(Boolean).map((n) => (
+              <a key={n} href={`tel:+${n.replace(/\D/g, "").replace(/^0/, "92")}`} className="footer-link mr-4">
+                {n}
+              </a>
+            ))}
+            </p>
+            <a href={`mailto:${email}`} className="footer-link">
+              {email}
+            </a>
           </div>
         </div>
       </div>

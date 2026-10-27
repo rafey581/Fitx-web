@@ -663,7 +663,7 @@ html.lenis body {
 .film-menu-link {
   font-family: var(--font-heading), ui-sans-serif, sans-serif;
   font-weight: 900;
-  font-size: clamp(2.4rem, 7vw, 6rem);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
   line-height: 0.95;
   text-transform: uppercase;
   letter-spacing: -0.03em;
@@ -853,8 +853,8 @@ html.lenis body {
 }
 
 .film-site main > :first-child > section > div > div:first-child > .heading-display {
-  font-size: clamp(3.2rem, 9vw, 8.5rem);
-  line-height: 0.86;
+  font-size: clamp(2.5rem, 4.6vw, 4.5rem);
+  line-height: 0.92;
 }
 
 .film-site main > :first-child > section > div > div + div {
@@ -985,4 +985,72 @@ html.lenis body {
 /* Contact details were set in the serif accent face; keep the film's sans. */
 .film-site main .font-serif {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* --- Type scale ------------------------------------------------------------
+ * Display sizes for the film and inner pages. Each is clamped so headings
+ * stay proportionate: readable on phones, never billboard-sized on large
+ * monitors. Use these instead of raw viewport units.
+ * ------------------------------------------------------------------------- */
+.type-hero {
+  font-size: clamp(2.5rem, 4.6vw, 4.5rem);
+}
+
+.type-statement {
+  font-size: clamp(3rem, 6vw, 5.5rem);
+}
+
+.type-title {
+  font-size: clamp(2rem, 3.4vw, 3.25rem);
+}
+
+.type-heading {
+  font-size: clamp(1.6rem, 2.6vw, 2.5rem);
+}
+
+.type-cta {
+  font-size: clamp(2.1rem, 4vw, 3.75rem);
+}
+
+/* --- Footer --------------------------------------------------------------- */
+.footer-label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand-accent);
+}
+
+/* Links read as links: underlined, brighter, with an arrow that moves on hover. */
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgb(237 233 227 / 0.92);
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.25);
+  text-underline-offset: 4px;
+  transition:
+    color 0.2s,
+    text-decoration-color 0.2s;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--brand-accent);
+  text-decoration-color: var(--brand-accent);
+}
+
+.footer-link-arrow {
+  display: inline-block;
+  font-size: 0.85em;
+  opacity: 0.6;
+  transition:
+    transform 0.25s,
+    opacity 0.25s;
+}
+
+.footer-link:hover .footer-link-arrow {
+  opacity: 1;
+  transform: translateX(3px);
 }

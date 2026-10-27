@@ -110,7 +110,7 @@ export default async function TrainerDetailPage({
             ← All coaches
           </Link>
           <p className="eyebrow eyebrow-bar mt-10">{trainer.title || "Coach"}</p>
-          <h1 className="film-display mt-5 text-[14vw] md:text-[7vw]">{trainer.name}</h1>
+          <h1 className="film-display mt-5 type-hero">{trainer.name}</h1>
 
           {specialties.length > 0 ? (
             <ul className="mt-6 flex flex-wrap gap-2">

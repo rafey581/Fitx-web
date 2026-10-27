@@ -44,7 +44,7 @@ export function Chapters({ content }: { content: FilmContent }) {
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-10 px-5 pb-24 sm:px-10 md:flex-row md:items-end md:justify-between md:pb-14">
           <div>
             <Tag index={0}>Sahiwal · Punjab</Tag>
-            <h1 className="film-display mt-5 text-[13vw] md:text-[7.2vw]">
+            <h1 className="film-display mt-5 type-hero">
               <span className="block" data-scramble>
                 The most
               </span>
@@ -78,7 +78,7 @@ export function Chapters({ content }: { content: FilmContent }) {
             <h2
               key={word}
               data-sub={`${0.18 + i * 0.27},0.13`}
-              className="film-display absolute text-[16vw] md:text-[11vw]"
+              className="film-display absolute type-statement"
             >
               {word}
             </h2>
@@ -108,7 +108,7 @@ export function Chapters({ content }: { content: FilmContent }) {
               <p className="film-mono text-[11px] text-accent">
                 {pad(k + 1)} / {pad(services.length)}
               </p>
-              <h2 className="film-display mt-3 text-[11vw] md:text-[5.4vw]">{s.title}</h2>
+              <h2 className="film-display mt-3 type-title">{s.title}</h2>
               <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70 md:text-base">{s.description}</p>
               <Link href={s.href} className="film-link mt-6">
                 Explore program
@@ -124,7 +124,7 @@ export function Chapters({ content }: { content: FilmContent }) {
           <Tag index={3}>The studio</Tag>
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <h2 className="film-display text-[15vw] md:text-[10vw]">
+          <h2 className="film-display type-statement">
             <span className="block" data-scramble>
               Inside
             </span>
@@ -159,7 +159,7 @@ export function Chapters({ content }: { content: FilmContent }) {
           {coaches.map((c, k) => (
             <article key={c.name + k} data-sub={`${coachBeat(k)},0.1`} className="film-beat max-w-md">
               <p className="film-mono text-[11px] text-accent">{c.role}</p>
-              <h2 className="film-display mt-3 text-[12vw] md:text-[5vw]">{c.name}</h2>
+              <h2 className="film-display mt-3 type-title">{c.name}</h2>
               <p className="mt-4 text-sm leading-relaxed text-white/70 md:text-base">{c.bio}</p>
               <Link href={c.href} className="film-link mt-6">
                 Meet the team
@@ -175,7 +175,7 @@ export function Chapters({ content }: { content: FilmContent }) {
           <Tag index={5}>Progress</Tag>
         </div>
         <div className="absolute inset-x-5 bottom-24 max-w-xl sm:left-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
-          <h2 className="film-display text-[12vw] md:text-[5.2vw]">
+          <h2 className="film-display type-title">
             <span className="block" data-scramble>
               Measured,
             </span>
@@ -204,7 +204,7 @@ export function Chapters({ content }: { content: FilmContent }) {
           <div className="flex justify-center">
             <Tag index={6}>Fees</Tag>
           </div>
-          <h2 className="film-display mt-4 text-[9vw] md:text-[4.6vw]">
+          <h2 className="film-display mt-4 type-heading">
             Two ways to train. <span className="text-accent">Save 10% on 3 months.</span>
           </h2>
         </div>
@@ -243,7 +243,7 @@ export function Chapters({ content }: { content: FilmContent }) {
       <section data-frame="7" className="film-frame" aria-label="Start training">
         <div className="absolute inset-x-0 bottom-[24svh] flex flex-col items-center px-5 text-center md:bottom-[20svh]">
           <Tag index={7}>Your move</Tag>
-          <h2 className="film-display mt-5 text-[14vw] md:text-[6.4vw]">
+          <h2 className="film-display mt-5 type-title">
             <span className="block" data-scramble>
               Start
             </span>
@@ -267,14 +267,14 @@ export function Chapters({ content }: { content: FilmContent }) {
             ) : null}
           </div>
         </div>
-        <footer className="film-mono absolute inset-x-5 bottom-16 hidden gap-4 text-[10px] text-white/50 sm:left-10 sm:right-28 md:grid md:grid-cols-4">
+        <footer className="absolute inset-x-5 bottom-16 hidden gap-6 text-sm text-white/80 sm:left-10 sm:right-28 md:grid md:grid-cols-4">
           <p>
-            <span className="block text-white/30">Visit</span>
+            <span className="footer-label mb-1 block">Visit</span>
             {content.address}
           </p>
           {(["Male", "Female", "Family"] as const).map((group) => (
             <p key={group}>
-              <span className="block text-white/30">{group === "Family" ? "Family Hour" : `${group} sessions`}</span>
+              <span className="footer-label mb-1 block">{group === "Family" ? "Family Hour" : `${group} sessions`}</span>
               {timings
                 .filter((t) => t.group === group)
                 .map((t) => `${t.start} – ${t.end}`)

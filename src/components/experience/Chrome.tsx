@@ -79,7 +79,7 @@ export function Loader({ progress, ready, onDone }: { progress: number; ready: b
       <div className="film-mono absolute left-5 top-6 text-[11px] text-white/50 sm:left-10">FITX / Sahiwal</div>
       <div className="film-mono absolute right-5 top-6 text-[11px] text-white/50 sm:right-10">Personal training studio</div>
       <div className="flex flex-col items-center">
-        <p className="film-display text-[22vw] leading-none md:text-[12vw]">
+        <p className="film-display text-[clamp(3.5rem,8vw,6.5rem)] leading-none">
           FIT
           <LogoX />
           <span className="sr-only">X</span>
@@ -217,20 +217,33 @@ export function Menu({ content, onJump }: { content: FilmContent; onJump: (i: nu
             </li>
           ))}
         </ol>
-        <div className="film-mono space-y-6 text-[11px] text-white/60 md:w-72">
-          <ul className="grid grid-cols-2 gap-x-6 gap-y-2 md:grid-cols-1">
+        <div className="space-y-6 text-[15px] text-white/80 md:w-72">
+          <p className="footer-label">Pages</p>
+          <ul className="-mt-3 grid grid-cols-2 gap-x-6 gap-y-2 md:grid-cols-1">
             {content.nav.map((n) => (
               <li key={n.href}>
-                <Link href={n.href} className="hover:text-accent">
+                <Link href={n.href} className="footer-link">
                   {n.label}
+                  <span aria-hidden="true" className="footer-link-arrow">
+                    →
+                  </span>
                 </Link>
               </li>
             ))}
           </ul>
-          <div className="space-y-1 border-t border-white/15 pt-6">
+          <div className="space-y-2 border-t border-white/15 pt-6">
+            <p className="footer-label">Visit</p>
             <p>{content.address}</p>
-            <p>{content.phone}</p>
-            <p>{content.email}</p>
+            <p>
+              {content.phone.split(/[/·,|]/).map((n) => n.trim()).filter(Boolean).map((n) => (
+              <a key={n} href={`tel:+${n.replace(/\D/g, "").replace(/^0/, "92")}`} className="footer-link mr-4">
+                {n}
+              </a>
+            ))}
+            </p>
+            <a href={`mailto:${content.email}`} className="footer-link">
+              {content.email}
+            </a>
           </div>
         </div>
       </div>

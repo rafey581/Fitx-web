@@ -84,7 +84,7 @@ export default async function ServiceDetailPage({
             ← All programs
           </Link>
           <p className="eyebrow eyebrow-bar mt-10">Program</p>
-          <h1 className="film-display mt-5 max-w-5xl text-[13vw] md:text-[7.5vw]">{service.title}</h1>
+          <h1 className="film-display mt-5 max-w-5xl type-hero">{service.title}</h1>
           {service.shortDescription ? (
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">{service.shortDescription}</p>
           ) : null}
