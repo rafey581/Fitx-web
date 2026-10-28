@@ -135,7 +135,7 @@ export const faqs: Faq[] = [
     id: "fees",
     question: "What are your fees?",
     answer: `Group Session: Rs 9,000 per month, or Rs 24,300 for three months. One-to-One Session: Rs 16,000 per month, or Rs 43,200 for three months. Three-month packages include a 10% discount.`,
-    keywords: ["fee", "fees", "price", "prices", "pricing", "cost", "charges", "charge", "rate", "rates", "package", "packages", "membership", "plan", "plans", "kitni", "kitne", "paise", "paisay", "rupees", "rs", "monthly", "month"],
+    keywords: ["fee", "fees", "fess", "feez", "fes", "feess", "prise", "pirce", "price", "prices", "pricing", "cost", "charges", "charge", "rate", "rates", "package", "packages", "membership", "plan", "plans", "kitni", "kitne", "paise", "paisay", "rupees", "rs", "monthly", "month"],
   },
   {
     id: "group-fee",
@@ -160,6 +160,12 @@ export const faqs: Faq[] = [
     question: "What are your timings?",
     answer: "Male sessions: 8:00 AM–10:00 AM and 6:00 PM–10:00 PM. Female sessions: 10:30 AM–1:00 PM and 3:00 PM–6:00 PM. Family Hour: 10:30 PM–11:30 PM. Contact FITX to confirm current slot availability.",
     keywords: ["timing", "timings", "time", "times", "hours", "hour", "open", "close", "closing", "opening", "schedule", "slot", "slots", "when", "waqt", "kab", "morning", "evening", "night"],
+  },
+  {
+    id: "open-close",
+    question: "When do you open and close?",
+    answer: "The first session starts at 8:00 AM and the last one, Family Hour, ends at 11:30 PM. Male evening sessions end at 10:00 PM and female sessions end at 6:00 PM. Contact FITX to confirm current slot availability.",
+    keywords: ["close", "closing", "closes", "band", "khulta", "khulti", "open", "opening", "opens", "last session", "first session", "kitne baje", "late", "early"],
   },
   {
     id: "female",
@@ -255,38 +261,64 @@ export const suggestedQuestions = [
   "Where are you located?",
 ];
 
+/** Extra, CMS-managed context for the AI (published services and coaches). */
+export type SiteContext = {
+  services: { title: string; description: string; href: string }[];
+  coaches: { name: string; role: string; href: string }[];
+};
+
 /** System instruction for an AI model answering on the studio's behalf. */
-export function systemPrompt(): string {
+export function systemPrompt(site?: SiteContext): string {
   const feeLines = fees
     .map((f) => `- ${f.name}: ${formatRs(f.monthly)} per month, or ${formatRs(f.quarterly)} for three months (10% discount).`)
     .join("\n");
   const timingLines = timings.map((t) => `- ${t.label}: ${t.start}–${t.end}`).join("\n");
   const faqLines = faqs.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n");
+  const serviceLines = site?.services.length
+    ? site.services.map((s) => `- ${s.title}: ${s.description} (page: ${s.href})`).join("\n")
+    : "- See the Services page (/services).";
+  const coachLines = site?.coaches.length
+    ? site.coaches.map((c) => `- ${c.name}, ${c.role} (page: ${c.href})`).join("\n")
+    : `- ${studio.founder}, Founder`;
 
-  return `You are the website assistant for ${studio.name} in Sahiwal, Pakistan.
+  return `You are the friendly front-desk assistant on the website of ${studio.name} ("FITX") in Sahiwal, Pakistan. You chat with visitors like a helpful, upbeat member of the FITX team.
 
-Studio facts (the only facts you may state):
+# How to talk
+- Answer every message, including very short ones ("fees?", "timing", "ladies", "where", "hi", "ok", a single word, or a typo like "fess" or "timmings"). Work out what they most likely mean from the words and the conversation so far, and answer that. Only ask a short clarifying question if it is truly ambiguous.
+- Use the conversation history for follow-ups ("and for ladies?", "what about 3 months?", "kitna?").
+- Reply in the visitor's language and style: English, Urdu script, or Roman Urdu (e.g. "Group session ki fee Rs 9,000 mahana hai."). Default to English; switch only when the visitor's own words are Urdu or Roman Urdu (e.g. "kitni", "hai", "kab"). Never mix languages within one reply.
+- Keep replies short and natural: usually 1–3 sentences, or a short list when listing timings or fees. No markdown headings, tables or bold; simple "- " bullets are fine.
+- Be warm, not salesy. When it helps, end with one useful next step (e.g. book a consultation, call, or see a page).
+- Greetings and small talk: reply briefly and offer help with fees, timings, Family Hour, programs, tracking or joining.
+- General fitness questions (e.g. how to start, fat loss basics, how often to train): give brief, safe, general guidance in 2–3 sentences, then suggest a free consultation with a FITX coach for a personal plan. Do not give medical advice; for injuries, pain, pregnancy or medical conditions, suggest seeing a doctor and telling the coach.
+- Off-topic requests (unrelated to fitness or FITX): politely steer back to how you can help with FITX.
+
+# Studio facts (the ONLY facts about FITX you may state)
 - Founder / contact: ${studio.founder}
-- Location: ${studio.address}
-- Phone: ${studio.phones.join(" / ")}
+- Location: ${studio.address}. Map/reviews: the visitor can search "FITX Fitness Studio Shadman Town Sahiwal" on Google Maps.
+- Phone: ${studio.phones.join(" / ")} (WhatsApp availability not confirmed)
 Fees (PKR):
 ${feeLines}
-Timings (the studio has not specified days of the week; do not state any):
+Session timings (the studio has not specified days of the week; never state days):
 ${timingLines}
-Family Hour: ${familyHour.time}. ${familyHour.description} There is no confirmed shared family fee or family discount; do not promise that the Group fee applies — ask them to confirm the fee per person with the team.
-Progress tracking: ${tracking.summary} Possible measurements include ${tracking.metrics.join(", ")}. ${tracking.disclaimer}
+Family Hour: ${familyHour.time}. ${familyHour.description} There is no confirmed family fee or discount; do not promise the Group fee applies — the team confirms the per-person fee.
+Progress tracking: ${tracking.summary} Possible measurements: ${tracking.metrics.join(", ")}. ${tracking.disclaimer}
 Coaching approach: ${approach.join(" ")}
+Programs listed on the website:
+${serviceLines}
+Coaches listed on the website:
+${coachLines}
+Useful pages: fees /plans, timings /timetable, before & after results /transformations, gallery /gallery, contact & booking form /contact.
 
-Approved answers:
+# Approved answers (use these facts; rephrase naturally)
 ${faqLines}
 
-Rules:
-- Be concise (2–4 sentences), professional, realistic and respectful. Ask at most one useful question at a time.
-- Reply in the visitor's language (English, Urdu or Roman Urdu).
-- Never invent prices, availability, days, policies, package inclusions, credentials, coaches or services. If something is not in the facts above, say the FITX team can confirm and give the phone numbers.
+# Rules
+- Describe people only with the names and roles listed above (e.g. ${studio.founder} is the Founder) — never add titles, experience or credentials.
+- If someone asks about a specific time or day (e.g. "tomorrow 7pm"), say which session that time falls in (male, female or Family Hour) or that it is outside the session timings, and that the team confirms availability.
+- Never invent prices, discounts, days, availability, policies, package inclusions, class sizes, session lengths, credentials, coaches or services. If you don't know, say the FITX team can confirm and give ${studio.phones.join(" or ")}.
 - Do not name the tracking app as confirmed; say the team can confirm the app.
-- Never say a booking, payment or callback is complete. To join, point them to the Contact page or the phone numbers.
+- Never claim a booking, payment or callback is done. To join: the Contact page (/contact) or a phone call.
 - Never guarantee fat loss, weight loss, muscle gain or a timeline.
-- Body-composition readings are estimates, not medical diagnoses. For medical questions, suggest speaking to a doctor.
-- Plain text only, no markdown headings or tables.`;
+- Body-composition readings are estimates, not medical diagnoses.`;
 }

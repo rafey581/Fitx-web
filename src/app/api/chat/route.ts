@@ -1,15 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+import { prisma } from "@/lib/db";
 import { localAnswer } from "@/lib/fitx/answer";
-import { systemPrompt } from "@/lib/fitx/knowledge";
+import { askGemini, geminiEnabled } from "@/lib/fitx/gemini";
+import { systemPrompt, type SiteContext } from "@/lib/fitx/knowledge";
 
 /**
  * Website chatbot endpoint.
  *
- * With ANTHROPIC_API_KEY set, Claude answers from the FITX knowledge base
- * (src/lib/fitx/knowledge.ts) under its approved-answers rules. Without a key,
- * or if the API call fails or declines, the offline matcher replies with the
- * approved answer text, so the bot never goes silent and never improvises.
+ * Provider order: Gemini (GEMINI_API_KEY) → Claude (ANTHROPIC_API_KEY) → the
+ * offline matcher. Both AI providers answer from the FITX knowledge base
+ * (src/lib/fitx/knowledge.ts) plus the published services/coaches, under its
+ * approved-answers rules. If no key is set, or every call fails, the offline
+ * matcher replies with approved answer text, so the bot never goes silent.
  */
 
 export const dynamic = "force-dynamic";
@@ -18,7 +21,35 @@ const MODEL = process.env.CHATBOT_MODEL || "claude-opus-5-5";
 const MAX_HISTORY = 12;
 const MAX_CHARS = 600;
 
-const SYSTEM = systemPrompt();
+// Published services/coaches for the prompt, refreshed every few minutes so
+// admin edits reach the bot without a restart.
+let cachedSystem: { text: string; at: number } | null = null;
+async function getSystem(): Promise<string> {
+  if (cachedSystem && Date.now() - cachedSystem.at < 5 * 60_000) return cachedSystem.text;
+  let site: SiteContext | undefined;
+  try {
+    const [services, trainers] = await Promise.all([
+      prisma.service.findMany({
+        where: { isPublished: true },
+        orderBy: { sortOrder: "asc" },
+        select: { title: true, shortDescription: true, slug: true },
+      }),
+      prisma.trainer.findMany({
+        where: { isPublished: true },
+        orderBy: { sortOrder: "asc" },
+        select: { name: true, title: true, slug: true },
+      }),
+    ]);
+    site = {
+      services: services.map((s) => ({ title: s.title, description: s.shortDescription ?? "", href: `/services/${s.slug}` })),
+      coaches: trainers.map((t) => ({ name: t.name, role: t.title ?? "Coach", href: `/trainers/${t.slug}` })),
+    };
+  } catch (error) {
+    console.warn("[chat] Could not load services/coaches for the prompt:", error);
+  }
+  cachedSystem = { text: systemPrompt(site), at: Date.now() };
+  return cachedSystem.text;
+}
 
 let client: Anthropic | null = null;
 function getClient() {
@@ -72,13 +103,25 @@ export async function POST(request: Request) {
   if (!messages) return Response.json({ error: "Invalid request" }, { status: 400 });
 
   const question = String(messages[messages.length - 1].content);
-  const offline = () => Response.json({ reply: localAnswer(question), source: "approved" });
+  const userTurns = messages.filter((m) => m.role === "user").map((m) => String(m.content));
+  const previous = userTurns.length > 1 ? userTurns[userTurns.length - 2] : undefined;
+  const offline = () => Response.json({ reply: localAnswer(question, previous), source: "approved" });
 
   if (limited(ip)) {
     return Response.json(
       { reply: "You're sending messages quickly — please wait a moment and try again.", source: "limit" },
       { status: 429 },
     );
+  }
+
+  const SYSTEM = await getSystem();
+
+  if (geminiEnabled()) {
+    const reply = await askGemini(
+      SYSTEM,
+      messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content) })),
+    );
+    if (reply) return Response.json({ reply, source: "ai" });
   }
 
   const anthropic = getClient();
