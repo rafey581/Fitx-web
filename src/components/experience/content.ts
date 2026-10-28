@@ -46,7 +46,7 @@ export type FilmContent = {
   nav: { label: string; href: string }[];
 };
 
-import { fees, formatRs, studio } from "@/lib/fitx/knowledge";
+import { coaches, fees, formatRs, studio, teamMember } from "@/lib/fitx/knowledge";
 
 const photo = (name: string) => `/images/fitx/3d/PHOTO-${name}.webp`;
 
@@ -93,6 +93,19 @@ export const fallbackServiceImages = [
 ];
 
 export const fallbackCoachImages = [PHOTOS.founder, PHOTOS.padsKick, PHOTOS.floorCoach];
+
+/** Portrait for a coach without an uploaded photo: the core team's own, else a studio photo. */
+export const coachPhoto = (slug: string, index: number) =>
+  teamMember(slug)?.photo ?? fallbackCoachImages[index % fallbackCoachImages.length];
+
+/** Closes the coaches chapter when fewer than three coaches are published. */
+export const teamCoach: FilmCoach = {
+  name: "The FITX coaching team",
+  role: "Personal & group training",
+  bio: "Every session is coached: technique instruction, structured programming and personal attention, built on the training programs Zohaib oversees.",
+  href: "/coaches",
+  image: PHOTOS.floorCoach,
+};
 
 /** Studio photos for the "Inside FITX" strips (studio shots first). */
 export const galleryImages = [
@@ -158,27 +171,14 @@ export const defaultContent: FilmContent = {
     },
   ],
   coaches: [
-    {
-      name: studio.founder,
-      role: "Founder",
-      bio: "Strength and conditioning specialist with a decade of coaching experience.",
-      href: "/coaches",
-      image: fallbackCoachImages[0],
-    },
-    {
-      name: "Boxing Coach",
-      role: "Boxing & Combat Coach",
-      bio: "Former competitive boxer focused on technique, footwork and conditioning.",
-      href: "/coaches",
-      image: fallbackCoachImages[1],
-    },
-    {
-      name: "Yoga Coach",
-      role: "Yoga & Mobility Coach",
-      bio: "Guides mobility, breathing and recovery work for every training level.",
-      href: "/coaches",
-      image: fallbackCoachImages[2],
-    },
+    ...coaches.map((m) => ({
+      name: m.name,
+      role: m.role,
+      bio: m.summary,
+      href: `/trainers/${m.slug}`,
+      image: m.photo,
+    })),
+    teamCoach,
   ],
   plans: fees.map((f) => ({
     name: f.name,

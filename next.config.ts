@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     "sharp",
   ],
   allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.56.1"],
+  // The founder's profile moved from the placeholder slug to his name.
+  async redirects() {
+    return [{ source: "/trainers/head-coach", destination: "/trainers/zohaib-ali", permanent: true }];
+  },
   experimental: {
     serverActions: {
       // Media uploads go through a server action; the default 1 MB is too small.

@@ -179,7 +179,7 @@ export function Chapters({ content }: { content: FilmContent }) {
               <h2 className="film-display mt-3 type-title">{c.name}</h2>
               <p className="mt-4 text-sm leading-relaxed text-white/70 md:text-base">{c.bio}</p>
               <Link href={c.href} className="film-link mt-6">
-                Meet the team
+                {c.href.startsWith("/trainers/") ? "View profile" : "Meet the team"}
               </Link>
             </article>
           ))}

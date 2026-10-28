@@ -1,13 +1,15 @@
 import "server-only";
 
 import {
+  coachPhoto,
   defaultContent,
-  fallbackCoachImages,
   fallbackServiceImages,
   galleryImages,
+  teamCoach,
   type FilmContent,
 } from "@/components/experience/content";
 import { prisma } from "@/lib/db";
+import { teamMember } from "@/lib/fitx/knowledge";
 import { mediaUrl } from "@/lib/media-url";
 import { getSiteSettings } from "@/lib/site/settings";
 
@@ -73,10 +75,10 @@ export async function getFilmContent(): Promise<FilmContent> {
       ? trainers.map((t, i) => ({
           name: t.name,
           role: t.title ?? "Coach",
-          bio: t.bio ?? "",
+          bio: teamMember(t.slug)?.summary ?? (t.bio ?? "").split(/\n{2,}/)[0],
           href: `/trainers/${t.slug}`,
-          image: t.photo ? mediaUrl(t.photo) : fallbackCoachImages[i % fallbackCoachImages.length],
-        }))
+          image: t.photo ? mediaUrl(t.photo) : coachPhoto(t.slug, i),
+        })).concat(trainers.length < 3 ? [teamCoach] : [])
       : defaultContent.coaches,
     plans: plans.length
       ? plans.map((p) => ({

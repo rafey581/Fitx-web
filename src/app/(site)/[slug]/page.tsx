@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { renderSections } from "@/components/sections/renderers";
+import { CoreTeam } from "@/components/site/core-team";
 import { getPublicPageBySlug } from "@/lib/site/pages";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +60,18 @@ export default async function PublicPage({
   const { slug } = await params;
   const data = await getPublicPageBySlug(slug);
   if (!data) notFound();
+
+  // The owners' profiles follow the story on the Who We Are page.
+  if (slug === "who-we-are") {
+    const [story, ...rest] = data.sections;
+    return (
+      <main className="min-h-full">
+        {await renderSections(story ? [story] : [])}
+        <CoreTeam />
+        {await renderSections(rest)}
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-full">{await renderSections(data.sections)}</main>

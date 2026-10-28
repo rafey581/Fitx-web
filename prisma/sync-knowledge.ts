@@ -1,7 +1,7 @@
 /**
  * One-time update for databases seeded before the studio's knowledge base
  * (src/lib/fitx/knowledge.ts) arrived: replaces the original placeholder fees,
- * contact details, founder name and demo timetable with the approved facts.
+ * contact details, coaches and demo timetable with the approved facts.
  *
  *   npm run db:sync-knowledge
  *
@@ -13,7 +13,7 @@ import "dotenv/config";
 
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
-import { fees, studio } from "../src/lib/fitx/knowledge";
+import { coaches, fees, studio } from "../src/lib/fitx/knowledge";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL;
@@ -138,13 +138,50 @@ async function syncTestimonials() {
   );
 }
 
-async function syncFounder() {
-  const result = await prisma.trainer.updateMany({
-    where: { slug: "head-coach", name: "Head Coach" },
-    data: { name: studio.founder, title: "Founder" },
+const OLD_FOUNDER_NAMES = ["Head Coach", "Zohaib Munir Ali"];
+const OLD_FOUNDER_BIO = "Strength and conditioning specialist with a decade of coaching experience.";
+const PLACEHOLDER_COACHES = [
+  { slug: "boxing-coach", name: "Boxing Coach" },
+  { slug: "yoga-coach", name: "Yoga Coach" },
+];
+
+/** The studio's real coaches replace the placeholder ones. */
+async function syncTeam() {
+  const founder = coaches[0];
+
+  // Old databases keep the founder at /trainers/head-coach; move it to the real name.
+  const taken = await prisma.trainer.findUnique({ where: { slug: founder.slug }, select: { id: true } });
+  if (!taken) {
+    const moved = await prisma.trainer.updateMany({
+      where: { slug: "head-coach", name: { in: OLD_FOUNDER_NAMES } },
+      data: { slug: founder.slug },
+    });
+    if (moved.count) console.info(`• Coaches: /trainers/head-coach moved to /trainers/${founder.slug}`);
+  }
+  const named = await prisma.trainer.updateMany({
+    where: { slug: founder.slug, name: { in: OLD_FOUNDER_NAMES } },
+    data: { name: founder.name, title: founder.role },
+  });
+  const profiled = await prisma.trainer.updateMany({
+    where: { slug: founder.slug, bio: OLD_FOUNDER_BIO },
+    data: { bio: founder.bio, specialties: [], certifications: [] },
   });
   console.info(
-    result.count > 0 ? `• Coaches: "Head Coach" renamed to ${studio.founder}` : "• Coaches: founder already set",
+    named.count || profiled.count
+      ? `• Coaches: ${founder.name}'s name, role and profile updated`
+      : `• Coaches: ${founder.name} already up to date`,
+  );
+
+  let hidden = 0;
+  for (const coach of PLACEHOLDER_COACHES) {
+    const result = await prisma.trainer.updateMany({
+      where: { slug: coach.slug, name: coach.name, isPublished: true },
+      data: { isPublished: false },
+    });
+    hidden += result.count;
+  }
+  console.info(
+    hidden ? `• Coaches: unpublished ${hidden} placeholder coaches` : "• Coaches: no placeholder coaches to unpublish",
   );
 }
 
@@ -153,7 +190,7 @@ async function main() {
   await syncSettings();
   await syncPlans();
   await syncTimetable();
-  await syncFounder();
+  await syncTeam();
   await syncTestimonials();
   console.info("Done.");
 }

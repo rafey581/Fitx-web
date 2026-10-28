@@ -22,7 +22,7 @@ import {
 } from "@/lib/sections/types";
 
 import {
-  fallbackCoachImages,
+  coachPhoto,
   fallbackServiceImages,
   galleryImages,
   PHOTOS,
@@ -810,7 +810,7 @@ async function TrainersGrid({
       const photo = trainer.photoId ? await getMedia(trainer.photoId) : null;
       const portrait = photo
         ? mediaUrl(photo)
-        : fallbackCoachImages[index % fallbackCoachImages.length];
+        : coachPhoto(trainer.slug, index);
       const specialties = Array.isArray(trainer.specialties)
         ? (trainer.specialties as unknown[]).map(String)
         : [];
@@ -844,8 +844,8 @@ async function TrainersGrid({
               </div>
             </div>
             {trainer.bio ? (
-              <p className="mt-4 text-sm leading-relaxed text-muted">
-                {trainer.bio}
+              <p className="mt-4 line-clamp-4 text-sm leading-relaxed text-muted">
+                {trainer.bio.split(/\n{2,}/)[0]}
               </p>
             ) : null}
             {specialties.length > 0 ? (

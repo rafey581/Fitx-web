@@ -12,12 +12,63 @@
 
 export const studio = {
   name: "FITX Personal Fitness Training Studio",
-  founder: "Zohaib Munir Ali",
+  /** Name as the studio publishes it (the knowledge-base document gives "Zohaib Munir Ali"). */
+  founder: "Zohaib Ali",
   address: "Shadman Town, Faisalabad Road, Sahiwal",
   phones: ["0322-6900206", "0300-6900206"],
   /** Overall session window across all timings (days not specified by the studio). */
   hoursSummary: "Sessions 8:00 AM – 11:30 PM",
 };
+
+export type TeamMember = {
+  slug: string;
+  name: string;
+  role: string;
+  /** One-line summary for cards. */
+  summary: string;
+  /** Profile text; paragraphs separated by blank lines. */
+  bio: string;
+  photo: string;
+};
+
+/** The owners, as written on the studio's own website (Core Team page). */
+export const owners: TeamMember[] = [
+  {
+    slug: "zohaib-ali",
+    name: studio.founder,
+    role: "Founder & Head Coach",
+    summary:
+      "Founded FITX to redefine how Sahiwal approaches fitness: structured personal training instead of a crowded gym.",
+    bio: [
+      "Zohaib Ali founded FITX Personal Fitness Training Studio in Shadman Town, Sahiwal, with a vision to redefine how the city approaches fitness. Rather than a crowded gym where members are left to figure things out on their own, FITX is built around structured personal training, from an initial consultation and goal-focused programming to consistent coaching and technique guidance.",
+      "In December 2025, Zohaib was invited as a guest speaker at the University of Sahiwal for an HEC-funded NRPU project on youth-led entrepreneurship, where he was presented with a token of appreciation for his contribution.",
+      "He continues to train personal clients while overseeing the training programs developed at FITX.",
+    ].join("\n\n"),
+    photo: "/images/fitx/team/zohaib-ali.webp",
+  },
+  {
+    slug: "usman-munir",
+    name: "Rana Usman Munir",
+    role: "Co-Owner & Executive Director",
+    summary:
+      "Runs the studio's operations, member experience and growth, so your program, schedule and goals always come first.",
+    bio: [
+      "Rana Usman Munir is the Co-Owner & Executive Director of FITX Personal Fitness Training Studio. Working alongside founder Zohaib Ali, he oversees the studio's operations, member experience and long-term growth, making sure the standard that FITX is known for holds true every single day: serious coaching, a professional floor, and honest service.",
+      "With a strong background in business and operations, Usman works as much behind the scenes as on the floor, managing members, trainers, timings and the small details that make a training studio feel truly professional. He believes a fitness journey should never be complicated by poor service; your program, your schedule and your goals always come first.",
+      "Under his direction, FITX continues to grow into one of Sahiwal's most respected personal training studios, one member, one result, one session at a time.",
+    ].join("\n\n"),
+    photo: "/images/fitx/team/usman-munir.webp",
+  },
+];
+
+/**
+ * Coaches with an approved profile. Zohaib is both an owner and a coach; the
+ * other coaches from the studio's Coaches page are added once their photos and
+ * profiles are supplied.
+ */
+export const coaches: TeamMember[] = owners.filter((m) => m.slug === "zohaib-ali");
+
+export const teamMember = (slug: string) => [...owners, ...coaches].find((m) => m.slug === slug);
 
 export type Fee = {
   name: string;
@@ -236,8 +287,8 @@ export const faqs: Faq[] = [
   {
     id: "founder",
     question: "Who runs FITX?",
-    answer: `FITX was founded by ${studio.founder}. The studio is coaching-led: structured training, technique instruction, personal attention, accountability and progress tracking.`,
-    keywords: ["founder", "owner", "who runs", "who is", "zohaib", "coach", "coaches", "trainer", "trainers", "team", "staff"],
+    answer: `FITX was founded by ${studio.founder}, Founder & Head Coach, and is run with Rana Usman Munir, Co-Owner & Executive Director. The studio is coaching-led: structured training, technique instruction, personal attention, accountability and progress tracking. Meet them on the Who We Are page.`,
+    keywords: ["founder", "owner", "co-owner", "director", "who runs", "who is", "zohaib", "usman", "rana", "munir", "head coach", "coach", "coaches", "trainer", "trainers", "team", "staff"],
   },
   {
     id: "approach",
@@ -279,7 +330,8 @@ export function systemPrompt(site?: SiteContext): string {
     : "- See the Services page (/services).";
   const coachLines = site?.coaches.length
     ? site.coaches.map((c) => `- ${c.name}, ${c.role} (page: ${c.href})`).join("\n")
-    : `- ${studio.founder}, Founder`;
+    : coaches.map((m) => `- ${m.name}, ${m.role} (page: /trainers/${m.slug})`).join("\n");
+  const teamLines = owners.map((m) => `- ${m.name} (${m.role}): ${m.bio.replace(/\n+/g, " ")}`).join("\n");
 
   return `You are the friendly front-desk assistant on the website of ${studio.name} ("FITX") in Sahiwal, Pakistan. You chat with visitors like a helpful, upbeat member of the FITX team.
 
@@ -294,7 +346,7 @@ export function systemPrompt(site?: SiteContext): string {
 - Off-topic requests (unrelated to fitness or FITX): politely steer back to how you can help with FITX.
 
 # Studio facts (the ONLY facts about FITX you may state)
-- Founder / contact: ${studio.founder}
+- Founder & Head Coach: ${studio.founder}. Co-Owner & Executive Director: Rana Usman Munir.
 - Location: ${studio.address}. Map/reviews: the visitor can search "FITX Fitness Studio Shadman Town Sahiwal" on Google Maps.
 - Phone: ${studio.phones.join(" / ")} (WhatsApp availability not confirmed)
 Fees (PKR):
@@ -308,13 +360,15 @@ Programs listed on the website:
 ${serviceLines}
 Coaches listed on the website:
 ${coachLines}
+Owners (published by the studio; you may share these details; see /who-we-are):
+${teamLines}
 Useful pages: fees /plans, timings /timetable, before & after results /transformations, gallery /gallery, contact & booking form /contact.
 
 # Approved answers (use these facts; rephrase naturally)
 ${faqLines}
 
 # Rules
-- Describe people only with the names and roles listed above (e.g. ${studio.founder} is the Founder) — never add titles, experience or credentials.
+- Describe people only with the names and roles listed above and the owner profiles (e.g. ${studio.founder} is the Founder & Head Coach) — never add other titles, experience or credentials.
 - If someone asks about a specific time or day (e.g. "tomorrow 7pm"), say which session that time falls in (male, female or Family Hour) or that it is outside the session timings, and that the team confirms availability.
 - Never invent prices, discounts, days, availability, policies, package inclusions, class sizes, session lengths, credentials, coaches or services. If you don't know, say the FITX team can confirm and give ${studio.phones.join(" or ")}.
 - Do not name the tracking app as confirmed; say the team can confirm the app.

@@ -17,7 +17,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
-import { fees, studio } from "../src/lib/fitx/knowledge";
+import { coaches, fees, studio } from "../src/lib/fitx/knowledge";
 import { defaultTheme } from "../src/lib/theme/tokens";
 import {
   LinkType,
@@ -614,35 +614,17 @@ const servicesSeed = [
   },
 ];
 
-const trainersSeed = [
-  {
-    slug: "head-coach",
-    name: studio.founder,
-    title: "Founder",
-    bio: "Strength and conditioning specialist with a decade of coaching experience.",
-    specialties: ["Strength", "Conditioning", "Fat loss"],
-    certifications: ["Certified Personal Trainer"],
-    sortOrder: 1,
-  },
-  {
-    slug: "boxing-coach",
-    name: "Boxing Coach",
-    title: "Boxing & Combat Coach",
-    bio: "Former competitive boxer focused on technique, footwork and conditioning.",
-    specialties: ["Boxing", "Conditioning"],
-    certifications: ["Amateur Boxing Coach"],
-    sortOrder: 2,
-  },
-  {
-    slug: "yoga-coach",
-    name: "Yoga Coach",
-    title: "Yoga & Mobility Coach",
-    bio: "Guides mobility, breathing and recovery work for every training level.",
-    specialties: ["Yoga", "Mobility", "Recovery"],
-    certifications: ["Yoga Instructor"],
-    sortOrder: 3,
-  },
-];
+// Coaches as published by the studio (src/lib/fitx/knowledge.ts). Specialties
+// and certifications are left empty until the studio confirms them.
+const trainersSeed = coaches.map((member, index) => ({
+  slug: member.slug,
+  name: member.name,
+  title: member.role,
+  bio: member.bio,
+  specialties: [] as string[],
+  certifications: [] as string[],
+  sortOrder: index + 1,
+}));
 
 // Real client reviews are added in the admin (Testimonials); none are invented.
 const testimonialsSeed: Array<{ name: string; quote: string; rating: number; sortOrder: number }> = [];

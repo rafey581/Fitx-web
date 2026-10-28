@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { mediaUrl } from "@/lib/media-url";
-import { fallbackCoachImages } from "@/components/experience/content";
+import { coachPhoto } from "@/components/experience/content";
 import { serializeJsonLd } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -99,7 +99,7 @@ export default async function TrainerDetailPage({
   const position = Math.max(0, order.findIndex((t) => t.id === trainer.id));
   const portrait = photo
     ? mediaUrl({ path: photo.path })
-    : fallbackCoachImages[position % fallbackCoachImages.length];
+    : coachPhoto(trainer.slug, position);
   const firstName = trainer.name.split(" ")[0];
 
   return (
