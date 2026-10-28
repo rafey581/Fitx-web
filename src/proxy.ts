@@ -1,6 +1,7 @@
 import { jwtVerify } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { SIMPLE_ADMIN_PATHS } from "@/lib/admin/nav";
 import { SESSION_COOKIE } from "@/lib/auth/cookie";
 
 /**
@@ -54,6 +55,13 @@ export async function proxy(request: NextRequest) {
 
     // Already signed in but sitting on a login screen -> back to the dashboard.
     if (signedIn && isPublic) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+
+    // The simple admin only has testimonials and the blog; other sections are
+    // hidden, so their addresses lead back to the admin home.
+    const allowed = SIMPLE_ADMIN_PATHS.some((p) => pathname === p || (p !== "/admin" && pathname.startsWith(`${p}/`)));
+    if (signedIn && !isPublic && !allowed) {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
   }

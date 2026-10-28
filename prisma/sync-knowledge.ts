@@ -14,6 +14,7 @@ import "dotenv/config";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 import { coaches, fees, owners, studio } from "../src/lib/fitx/knowledge";
+import { legacyPosts } from "../src/lib/fitx/legacy-blog";
 import { googleReviews } from "../src/lib/fitx/reviews";
 import { PrismaClient } from "../src/generated/prisma/client";
 
@@ -267,18 +268,64 @@ async function syncCoachRoster() {
   }
 }
 
-/** Adds each Google review once (matched by name); admin edits are kept. */
+// One-time imports are remembered here, so content the admin deletes later is
+// never brought back by a re-run.
+const IMPORTS_KEY = "sync-imports";
+
+async function importDone(name: string): Promise<boolean> {
+  const row = await prisma.setting.findUnique({ where: { key: IMPORTS_KEY } });
+  return Boolean((row?.value as Record<string, unknown> | undefined)?.[name]);
+}
+
+async function markImported(name: string): Promise<void> {
+  const row = await prisma.setting.findUnique({ where: { key: IMPORTS_KEY } });
+  const value = { ...((row?.value as Record<string, unknown> | undefined) ?? {}), [name]: new Date().toISOString() };
+  await prisma.setting.upsert({
+    where: { key: IMPORTS_KEY },
+    update: { value: value as never },
+    create: { key: IMPORTS_KEY, group: "system", value: value as never },
+  });
+}
+
+/** Imports the Google reviews once; afterwards they are managed in Admin → Testimonials. */
 async function syncGoogleReviews() {
-  let added = 0;
-  for (const [index, review] of googleReviews.entries()) {
-    const exists = await prisma.testimonial.findFirst({ where: { name: review.name }, select: { id: true } });
-    if (exists) continue;
-    await prisma.testimonial.create({
-      data: { name: review.name, quote: review.text, rating: null, sortOrder: index + 1, isPublished: true },
+  if (await importDone("googleReviews")) return console.info("• Testimonials: Google reviews already imported");
+  const already = await prisma.testimonial.count({ where: { name: { in: googleReviews.map((r) => r.name) } } });
+  if (already === 0) {
+    await prisma.testimonial.createMany({
+      data: googleReviews.map((review, index) => ({
+        name: review.name,
+        quote: review.text,
+        rating: null,
+        sortOrder: index + 1,
+        isPublished: true,
+      })),
     });
-    added += 1;
   }
-  console.info(added ? `• Testimonials: added ${added} Google reviews` : "• Testimonials: Google reviews already added");
+  await markImported("googleReviews");
+  console.info(
+    already === 0 ? `• Testimonials: imported ${googleReviews.length} Google reviews` : "• Testimonials: Google reviews already imported",
+  );
+}
+
+/** Imports the site's original blog posts once, if the blog is empty. */
+async function syncLegacyBlog() {
+  if (await importDone("legacyBlog")) return console.info("• Blog: original posts already imported");
+  const existing = await prisma.blogPost.count();
+  if (existing === 0) {
+    await prisma.blogPost.createMany({
+      data: legacyPosts.map((post) => ({
+        slug: post.slug,
+        title: post.title,
+        excerpt: post.excerpt,
+        content: post.content,
+        status: "PUBLISHED" as const,
+        publishedAt: new Date(`${post.date}T09:00:00Z`),
+      })),
+    });
+  }
+  await markImported("legacyBlog");
+  console.info(existing === 0 ? `• Blog: imported ${legacyPosts.length} original posts` : "• Blog: posts already present");
 }
 
 async function main() {
@@ -289,6 +336,7 @@ async function main() {
   await syncTeam();
   await syncTestimonials();
   await syncGoogleReviews();
+  await syncLegacyBlog();
   console.info("Done.");
 }
 

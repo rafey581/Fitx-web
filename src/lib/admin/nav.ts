@@ -11,127 +11,21 @@ export type AdminNavItem = {
 };
 
 /**
- * The full admin information architecture from PRD section 8.
- * Items are revealed phase by phase; `implemented: false` entries show a
- * "soon" badge so the owner can see what is coming.
+ * The simple admin: the studio only manages testimonials and blog posts.
+ *
+ * The other sections (pages, media, trainers, menus, theme, settings, users…)
+ * still exist in the code but are hidden, and src/proxy.ts sends their
+ * addresses back to the admin home. To bring one back, add it here and to
+ * SIMPLE_ADMIN_PATHS.
  */
 export const adminNav: AdminNavItem[] = [
-  {
-    label: "Dashboard",
-    href: "/admin",
-    permission: null,
-    group: "Overview",
-    implemented: true,
-  },
-
-  {
-    label: "Pages",
-    href: "/admin/pages",
-    permission: "pages:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Media",
-    href: "/admin/media",
-    permission: "media:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Trainers",
-    href: "/admin/trainers",
-    permission: "content:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Services",
-    href: "/admin/services",
-    permission: "content:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Plans",
-    href: "/admin/plans",
-    permission: "content:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Testimonials",
-    href: "/admin/testimonials",
-    permission: "content:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Gallery",
-    href: "/admin/gallery",
-    permission: "content:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Timetable",
-    href: "/admin/timetable",
-    permission: "content:read",
-    group: "Content",
-    implemented: true,
-  },
-  {
-    label: "Leads",
-    href: "/admin/leads",
-    permission: "leads:read",
-    group: "Content",
-    implemented: true,
-  },
-
-  {
-    label: "Menus",
-    href: "/admin/menus",
-    permission: "navigation:write",
-    group: "Site",
-    implemented: true,
-  },
-  {
-    label: "Theme",
-    href: "/admin/theme",
-    permission: "theme:write",
-    group: "Site",
-    implemented: true,
-  },
-  {
-    label: "Settings",
-    href: "/admin/settings",
-    permission: "settings:read",
-    group: "Site",
-    implemented: true,
-  },
-  {
-    label: "Redirects",
-    href: "/admin/redirects",
-    permission: "navigation:write",
-    group: "Site",
-    implemented: true,
-  },
-
-  {
-    label: "Users",
-    href: "/admin/users",
-    permission: "users:read",
-    group: "System",
-    implemented: true,
-  },
-  {
-    label: "Audit log",
-    href: "/admin/audit-log",
-    permission: "audit:read",
-    group: "System",
-    implemented: true,
-  },
+  { label: "Home", href: "/admin", permission: null, group: "Overview", implemented: true },
+  { label: "Testimonials", href: "/admin/testimonials", permission: "content:write", group: "Content", implemented: true },
+  { label: "Blog", href: "/admin/blog", permission: "content:write", group: "Content", implemented: true },
 ];
+
+/** Admin addresses reachable in the simple admin (besides sign-in screens). */
+export const SIMPLE_ADMIN_PATHS = ["/admin", "/admin/testimonials", "/admin/blog", "/admin/forbidden"];
 
 export const ADMIN_NAV_GROUPS = [
   "Overview",
