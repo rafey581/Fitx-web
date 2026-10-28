@@ -74,6 +74,16 @@ export const PHOTOS = {
   floorWide: photo("2026-10-03-17-36-56"),
 } as const;
 
+/** Opening slideshow. `position` keeps the subject in frame on tall phones. */
+export const heroSlides = [
+  { src: "/images/fitx/hero/studio-floor.webp", label: "The studio floor", alt: "The FITX training floor in Sahiwal", position: "45% 50%" },
+  { src: "/images/fitx/hero/pad-work.webp", label: "Boxing pad work", alt: "A FITX coach holding pads for a client", position: "55% 40%" },
+  { src: "/images/fitx/hero/coached-lift.webp", label: "Coached lifting", alt: "A FITX trainer coaching a client through a curl", position: "30% 45%" },
+  { src: "/images/fitx/hero/group-class.webp", label: "Group sessions", alt: "A group session on the FITX studio floor", position: "50% 55%" },
+  { src: "/images/fitx/hero/floor-coaching.webp", label: "One-to-one coaching", alt: "A FITX trainer coaching a client through push-ups", position: "35% 60%" },
+  { src: "/images/fitx/hero/team.webp", label: "The FITX team", alt: "The FITX team with a trophy", position: "50% 60%" },
+];
+
 export const fallbackServiceImages = [
   PHOTOS.curlTrainer,
   PHOTOS.padsDuo,
@@ -84,19 +94,26 @@ export const fallbackServiceImages = [
 
 export const fallbackCoachImages = [PHOTOS.founder, PHOTOS.padsKick, PHOTOS.floorCoach];
 
+/** Studio photos for the "Inside FITX" strips (studio shots first). */
 export const galleryImages = [
+  "/images/fitx/3d/studio-1.webp",
+  PHOTOS.padsDuo,
+  "/images/fitx/3d/studio-5.webp",
   PHOTOS.ropes,
+  PHOTOS.curlTrainer,
+  "/images/fitx/3d/studio-3.webp",
   PHOTOS.deadlift,
   PHOTOS.gloves,
-  PHOTOS.lunge,
+  "/images/fitx/3d/studio-2.webp",
   PHOTOS.legPress,
   PHOTOS.airbike,
+  PHOTOS.floorWide,
+  "/images/fitx/3d/studio-4.webp",
   PHOTOS.overhead,
-  PHOTOS.clientMonth,
-  PHOTOS.platesTrainer,
-  PHOTOS.trainerBack,
+  PHOTOS.padsKick,
+  PHOTOS.lunge,
   PHOTOS.rowCoach,
-  PHOTOS.dumbbellTalk,
+  PHOTOS.clientMonth,
 ];
 
 export const defaultContent: FilmContent = {
@@ -178,6 +195,7 @@ export const defaultContent: FilmContent = {
     { label: "Coaches", href: "/coaches" },
     { label: "Gallery", href: "/gallery" },
     { label: "Success stories", href: "/success-stories" },
+    { label: "Transformations", href: "/transformations" },
     { label: "Plans", href: "/plans" },
     { label: "Timetable", href: "/timetable" },
     { label: "Blog", href: "/blog" },
@@ -187,7 +205,7 @@ export const defaultContent: FilmContent = {
 
 /** The film's chapters, in scroll order. `vh` is the scroll length of each. */
 export const CHAPTERS = [
-  { id: "origin", label: "Origin", vh: 170 },
+  { id: "origin", label: "Origin", vh: 210 },
   { id: "forge", label: "Forge", vh: 200 },
   { id: "programs", label: "Programs", vh: 320 },
   { id: "studio", label: "Studio", vh: 220 },

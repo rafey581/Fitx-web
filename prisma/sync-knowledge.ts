@@ -115,6 +115,29 @@ async function syncTimetable() {
   );
 }
 
+// Placeholder reviews from the original seed: not real clients.
+const PLACEHOLDER_TESTIMONIALS = [
+  { name: "Ayesha K.", quote: "Training at FITX completely changed how I feel. The coaching is personal and the results are real." },
+  { name: "Bilal R.", quote: "The boxing sessions are the highlight of my week. My fitness and confidence are the best they have ever been." },
+  { name: "Hira S.", quote: "Yoga and mobility work fixed the aches I had carried for years. Highly recommended." },
+];
+
+async function syncTestimonials() {
+  let count = 0;
+  for (const t of PLACEHOLDER_TESTIMONIALS) {
+    const result = await prisma.testimonial.updateMany({
+      where: { name: t.name, quote: t.quote, isPublished: true },
+      data: { isPublished: false },
+    });
+    count += result.count;
+  }
+  console.info(
+    count > 0
+      ? `• Testimonials: unpublished ${count} placeholder reviews (add real ones in Admin → Testimonials)`
+      : "• Testimonials: no placeholder reviews to unpublish",
+  );
+}
+
 async function syncFounder() {
   const result = await prisma.trainer.updateMany({
     where: { slug: "head-coach", name: "Head Coach" },
@@ -131,6 +154,7 @@ async function main() {
   await syncPlans();
   await syncTimetable();
   await syncFounder();
+  await syncTestimonials();
   console.info("Done.");
 }
 

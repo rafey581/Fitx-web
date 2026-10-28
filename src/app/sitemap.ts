@@ -64,5 +64,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
+  // Code-defined pages (not in the CMS page table).
+  for (const path of ["/transformations", "/blog"]) {
+    entries.push({ url: absoluteUrl(path), changeFrequency: "monthly", priority: 0.7 });
+  }
+
   return entries;
 }

@@ -1054,3 +1054,182 @@ html.lenis body {
   opacity: 1;
   transform: translateX(3px);
 }
+
+/* --- Hero slideshow --------------------------------------------------------- */
+.hero-slides {
+  overflow: hidden;
+  background: #050407;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 1.4s ease,
+    transform 7s ease-out;
+}
+
+.hero-slide.is-active {
+  opacity: 1;
+  transform: scale(1.12);
+}
+
+/* Darken left and bottom so the headline always reads over any photo. */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(5 4 7 / 0.88) 0%, rgb(5 4 7 / 0.45) 45%, rgb(5 4 7 / 0.1) 75%),
+    linear-gradient(0deg, rgb(5 4 7 / 0.92) 0%, rgb(5 4 7 / 0) 45%),
+    linear-gradient(180deg, rgb(5 4 7 / 0.6) 0%, rgb(5 4 7 / 0) 22%);
+}
+
+@media (max-width: 768px) {
+  .hero-scrim {
+    background:
+      linear-gradient(0deg, rgb(5 4 7 / 0.95) 0%, rgb(5 4 7 / 0.55) 45%, rgb(5 4 7 / 0.15) 70%),
+      linear-gradient(180deg, rgb(5 4 7 / 0.65) 0%, rgb(5 4 7 / 0) 25%);
+  }
+}
+
+.hero-arrow {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgb(255 255 255 / 0.3);
+  border-radius: 999px;
+  background: rgb(5 4 7 / 0.35);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.hero-arrow:hover {
+  border-color: var(--brand-accent);
+  background: var(--brand-accent);
+}
+
+.hero-dot {
+  flex: 1;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.hero-dot > span {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.25);
+}
+
+/* The active bar fills over the slide's duration, like a story progress bar. */
+.hero-dot > span.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--brand-accent);
+  transform-origin: left;
+  animation: hero-fill 5.5s linear forwards;
+}
+
+.hero-dot > span.is-paused::after {
+  animation-play-state: paused;
+}
+
+@keyframes hero-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide,
+  .hero-slide.is-active {
+    transform: none;
+    transition: opacity 0.4s;
+  }
+  .hero-dot > span.is-active::after {
+    animation: none;
+  }
+}
+
+/* --- Inside FITX photo strips ------------------------------------------- */
+.studio-strips {
+  position: absolute;
+  inset-inline: 0;
+  top: 34%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  perspective: 1400px;
+}
+
+.studio-row {
+  overflow: hidden;
+  transform: rotateX(8deg);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.studio-row + .studio-row {
+  transform: rotateX(-8deg);
+}
+
+.studio-track {
+  display: flex;
+  width: max-content;
+  animation: studio-scroll 70s linear infinite;
+}
+
+.studio-track.is-reverse {
+  animation-direction: reverse;
+  animation-duration: 80s;
+}
+
+.studio-strips:hover .studio-track,
+.film-frame:not([data-active="true"]) .studio-track {
+  animation-play-state: paused;
+}
+
+.studio-photo {
+  /* Margin, not gap, so the duplicated half is exactly 50% of the track. */
+  margin-right: 1rem;
+  height: clamp(9rem, 20svh, 15rem);
+  width: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow: 0 20px 40px -20px rgb(0 0 0 / 0.8);
+}
+
+@keyframes studio-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-track {
+    animation: none;
+  }
+  .studio-row {
+    overflow-x: auto;
+  }
+}

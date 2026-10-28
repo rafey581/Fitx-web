@@ -644,29 +644,8 @@ const trainersSeed = [
   },
 ];
 
-const testimonialsSeed = [
-  {
-    name: "Ayesha K.",
-    quote:
-      "Training at FITX completely changed how I feel. The coaching is personal and the results are real.",
-    rating: 5,
-    sortOrder: 1,
-  },
-  {
-    name: "Bilal R.",
-    quote:
-      "The boxing sessions are the highlight of my week. My fitness and confidence are the best they have ever been.",
-    rating: 5,
-    sortOrder: 2,
-  },
-  {
-    name: "Hira S.",
-    quote:
-      "Yoga and mobility work fixed the aches I had carried for years. Highly recommended.",
-    rating: 5,
-    sortOrder: 3,
-  },
-];
+// Real client reviews are added in the admin (Testimonials); none are invented.
+const testimonialsSeed: Array<{ name: string; quote: string; rating: number; sortOrder: number }> = [];
 
 // Fees and timings come from the studio's approved knowledge base
 // (src/lib/fitx/knowledge.ts) so the site, chatbot and seed never disagree.
@@ -927,7 +906,7 @@ async function seedContentModules(): Promise<void> {
     prisma.timetableEntry.count(),
   ]);
 
-  if (testimonials === 0) {
+  if (testimonials === 0 && testimonialsSeed.length > 0) {
     await prisma.testimonial.createMany({
       data: testimonialsSeed.map((item) => ({ ...item, isPublished: true })),
     });

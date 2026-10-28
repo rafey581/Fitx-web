@@ -994,6 +994,10 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
+/** Google Maps search for the studio (opens its listing and reviews). */
+const GOOGLE_REVIEWS_URL =
+  "https://www.google.com/maps/search/?api=1&query=FITX+Fitness+Studio+Shadman+Town+Sahiwal";
+
 async function Testimonials({
   content,
   style,
@@ -1026,6 +1030,49 @@ async function Testimonials({
           rating: item.rating ?? 5,
           photoId: item.photoId ?? "",
         }));
+
+  if (items.length === 0) {
+    // No approved reviews published yet: point to the real ones on Google and
+    // to the before/after gallery rather than showing an empty slider.
+    return (
+      <SectionShell style={style}>
+        <Heading
+          eyebrow={pickStr(content, "eyebrow")}
+          heading={pickStr(content, "heading")}
+          slash={pickBool(content, "showAccentSlash", true)}
+        />
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <a
+            href={GOOGLE_REVIEWS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card card-hover group flex flex-col p-8"
+          >
+            <p className="eyebrow">Google reviews</p>
+            <p className="heading-display mt-3 text-2xl text-ink">Read what our clients say</p>
+            <p className="mt-3 text-muted">See FITX&apos;s reviews from real members on Google Maps.</p>
+            <span className="footer-link mt-6 w-fit">
+              Open Google reviews
+              <span aria-hidden="true" className="footer-link-arrow">
+                ↗
+              </span>
+            </span>
+          </a>
+          <Link href="/transformations" className="card card-hover group flex flex-col p-8">
+            <p className="eyebrow">Before &amp; after</p>
+            <p className="heading-display mt-3 text-2xl text-ink">See real transformations</p>
+            <p className="mt-3 text-muted">Results from FITX clients, coached and tracked.</p>
+            <span className="footer-link mt-6 w-fit">
+              View transformations
+              <span aria-hidden="true" className="footer-link-arrow">
+                →
+              </span>
+            </span>
+          </Link>
+        </div>
+      </SectionShell>
+    );
+  }
 
   const slides = await Promise.all(
     items.map(async (item, index) => {

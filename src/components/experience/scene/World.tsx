@@ -18,7 +18,7 @@ import { film, local, useFilmUi } from "../store";
 import { Dust, Floor } from "./Atmosphere";
 import { Emblem } from "./Emblem";
 import { cameraAt, WORLD } from "./path";
-import { Coaches, FinaleHalo, Plans, Programs, Progress, Studio } from "./Stations";
+import { Coaches, FinaleHalo, Plans, Programs, Progress } from "./Stations";
 import { Tunnel } from "./Tunnel";
 
 const BG = "#050407";
@@ -29,7 +29,7 @@ const _look = new THREE.Vector3();
 const _caOffset = new THREE.Vector2(0, 0);
 
 /** Drives the camera along the shot list and carries the key light with it. */
-function CameraRig({ reduced }: { reduced: boolean }) {
+function CameraRig({ reduced, mobile }: { reduced: boolean; mobile: boolean }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const light = useRef<THREE.PointLight>(null);
@@ -53,7 +53,7 @@ function CameraRig({ reduced }: { reduced: boolean }) {
     film.time += (film.target - film.time) * k;
     film.velocity *= 0.92;
 
-    cameraAt(film.time, _pos, _look);
+    cameraAt(film.time, _pos, _look, mobile);
     _pos.x += film.pointer.x * 0.22;
     _pos.y += film.pointer.y * 0.14;
     camera.position.copy(_pos);
@@ -62,7 +62,7 @@ function CameraRig({ reduced }: { reduced: boolean }) {
     // Banking: a gentle roll down the tunnel, a full swirl through the helix.
     const roll =
       Math.sin(Math.PI * local(film.time, 1)) * 0.28 +
-      Math.sin(Math.PI * local(film.time, 3)) * 0.85;
+      Math.sin(Math.PI * local(film.time, 3)) * 0.12;
     camera.rotateZ(roll);
 
     if (light.current) {
@@ -147,7 +147,6 @@ function Scene({ content, mobile }: { content: FilmContent; mobile: boolean }) {
       <Emblem intro position={[WORLD.emblem.x, WORLD.emblem.y, WORLD.emblem.z]} shards={mobile ? 22 : 44} />
       <Tunnel />
       <Programs services={content.services} />
-      <Studio gallery={content.gallery} />
       <Coaches coaches={content.coaches} />
       <Progress />
       <Plans plans={content.plans} />
@@ -187,7 +186,7 @@ export default function World({
       <color attach="background" args={[BG]} />
       <fog attach="fog" args={[BG, 12, 44]} />
       <ProgressBridge onProgress={onProgress} />
-      <CameraRig reduced={reduced} />
+      <CameraRig reduced={reduced} mobile={mobile} />
       <Dust count={mobile ? 1400 : 3600} />
       <Suspense fallback={null}>
         <Scene content={content} mobile={mobile} />

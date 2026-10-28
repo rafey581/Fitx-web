@@ -30,8 +30,12 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       children: l.children.map((c) => ({ label: c.label, href: c.href })),
     })),
   ];
-  if (!links.some((l) => l.href === "/blog")) {
-    links.push({ label: "Blog", href: "/blog", children: [] });
+  // Code-defined pages that the CMS menu doesn't know about.
+  for (const extra of [
+    { label: "Transformations", href: "/transformations" },
+    { label: "Blog", href: "/blog" },
+  ]) {
+    if (!links.some((l) => l.href === extra.href)) links.push({ ...extra, children: [] });
   }
 
   const structuredData = {

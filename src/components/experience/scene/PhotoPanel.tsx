@@ -24,7 +24,7 @@ const vertex = /* glsl */ `
     vUv = uv;
     vec3 p = position;
     float bend = sin(uv.x * 3.14159);
-    p.z += bend * uVel * 0.9;
+    p.z += bend * uVel * 0.4;
     p.z += sin(uv.y * 4.0 + uTime * 0.8) * 0.04 * (1.0 - uReveal);
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     vDepth = -mv.z;
@@ -51,7 +51,7 @@ const fragment = /* glsl */ `
       : vec2(uPlaneAspect / uImgAspect, 1.0);
     vec2 uv = (vUv - 0.5) * s * (1.0 - 0.06 * uReveal) + 0.5;
 
-    float shift = uVel * 0.025 + (1.0 - uReveal) * 0.004;
+    float shift = uVel * 0.008 + (1.0 - uReveal) * 0.002;
     vec3 col = vec3(
       texture2D(uMap, uv + vec2(shift, 0.0)).r,
       texture2D(uMap, uv).g,

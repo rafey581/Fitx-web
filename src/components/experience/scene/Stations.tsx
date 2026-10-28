@@ -32,33 +32,6 @@ export function Programs({ services }: { services: FilmContent["services"] }) {
   );
 }
 
-/** Chapter 3 — the studio gallery wrapped into a helix around the camera. */
-export function Studio({ gallery }: { gallery: string[] }) {
-  const { z0, step, radius } = WORLD.studio;
-  const spin = useRef<THREE.Group>(null);
-  useFrame((_, delta) => {
-    if (spin.current) spin.current.rotation.z += delta * 0.03;
-  });
-  return (
-    <group ref={spin}>
-      {gallery.slice(0, 12).map((url, i) => {
-        const a = i * ((Math.PI * 2) / 5.3) + 0.6;
-        return (
-          <PhotoPanel
-            key={url + i}
-            url={url}
-            width={2.6}
-            position={[Math.cos(a) * radius, Math.sin(a) * radius * 0.75, z0 + step * i]}
-            lookAtAxis
-            revealNear={6}
-            revealFar={13}
-          />
-        );
-      })}
-    </group>
-  );
-}
-
 /** Chapter 4 — a black monolith per coach with their portrait set into it. */
 export function Coaches({ coaches }: { coaches: FilmContent["coaches"] }) {
   const { z, xs } = WORLD.coaches;

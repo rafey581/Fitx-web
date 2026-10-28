@@ -102,7 +102,12 @@ export async function SiteFooter() {
           <nav aria-label="Footer">
             <p className="footer-label">Explore</p>
             <ul className="mt-3 space-y-2">
-              {links.map((link) => (
+              {[
+                ...links,
+                ...(links.some((l) => l.href === "/transformations")
+                  ? []
+                  : [{ id: "transformations", label: "Transformations", href: "/transformations", newTab: false, children: [] }]),
+              ].map((link) => (
                 <li key={link.id}>
                   <Link
                     href={link.href}

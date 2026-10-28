@@ -42,7 +42,35 @@ const coachKeys: Key[] = WORLD.coaches.xs.flatMap((x, k) => {
   ];
 });
 
-const KEYS: Key[] = [
+/**
+ * Phones: text sits under the picture, so instead of the angled desktop shots
+ * the camera faces each program/coach photo head-on, centred and fully on
+ * screen. `d` is the viewing distance along the photo's own facing direction.
+ */
+const facing = (x: number, y: number, z: number, turn: number, d: number) =>
+  [x + Math.sin(turn) * d, y, z + Math.cos(turn) * d] as V3;
+
+const mobileProgramKeys: Key[] = [0, 1, 2, 3, 4].flatMap((k) => {
+  const z = WORLD.programs.z0 + WORLD.programs.step * k;
+  const x = WORLD.programs.x;
+  const t = 2.1 + k * 0.185;
+  return [
+    { t, pos: facing(x, 0, z, -0.32, 8.2), look: [x, 0, z] as V3 },
+    { t: t + 0.07, pos: facing(x, 0, z, -0.32, 7.8), look: [x, 0, z] as V3 },
+  ];
+});
+
+const mobileCoachKeys: Key[] = WORLD.coaches.xs.flatMap((x, k) => {
+  const t = 4.18 + k * 0.29;
+  const z = WORLD.coaches.z;
+  const turn = -x * 0.05;
+  return [
+    { t, pos: facing(x, 0.7, z, turn, 7.6), look: [x, 0.7, z] as V3 },
+    { t: t + 0.09, pos: facing(x, 0.7, z, turn, 7.3), look: [x, 0.7, z] as V3 },
+  ];
+});
+
+const buildKeys = (mobile: boolean): Key[] => [
   // 0 · Origin — orbit the emblem, then dive through its ring.
   { t: 0, pos: [0, 0.15, 9.5], look: [0, 0, 0] },
   { t: 0.3, pos: [3.4, 1.0, 6.8], look: [0, 0.1, 0] },
@@ -53,13 +81,13 @@ const KEYS: Key[] = [
   { t: 1.55, pos: [0.35, -0.25, -28], look: [0, 0, -44] },
   { t: 1.95, pos: [-0.2, 0.1, -54], look: [0.6, 0, -70] },
   // 2 · Programs — glide past each discipline.
-  ...programKeys,
+  ...(mobile ? mobileProgramKeys : programKeys),
   { t: 3.0, pos: [0, 0, -168], look: [0, 0, -186] },
   // 3 · Studio — spiral through the gallery helix.
   { t: 3.5, pos: [0, 0, -202], look: [0, 0, -220] },
   { t: 3.93, pos: [0, 0.6, -240], look: [0, 0.5, -262] },
   // 4 · Coaches — visit each monolith.
-  ...coachKeys,
+  ...(mobile ? mobileCoachKeys : coachKeys),
   { t: 4.95, pos: [1.2, 1.6, -268], look: [2.2, 0.6, -300] },
   // 5 · Progress — drift up to the holographic tracking dashboard.
   { t: 5.35, pos: [0.4, 0.7, -292], look: [2.2, 0.5, -300] },
@@ -74,6 +102,9 @@ const KEYS: Key[] = [
   { t: 8, pos: [0, 0.6, -364], look: [0, -1.2, -376] },
 ];
 
+const KEYS = buildKeys(false);
+const MOBILE_KEYS = buildKeys(true);
+
 function catmull(p0: number, p1: number, p2: number, p3: number, t: number) {
   const t2 = t * t;
   const t3 = t2 * t;
@@ -86,7 +117,7 @@ function catmull(p0: number, p1: number, p2: number, p3: number, t: number) {
   );
 }
 
-function sample(time: number, field: "pos" | "look", out: THREE.Vector3) {
+function sample(KEYS: Key[], time: number, field: "pos" | "look", out: THREE.Vector3) {
   const last = KEYS.length - 1;
   if (time <= KEYS[0].t) return out.set(...KEYS[0][field]);
   if (time >= KEYS[last].t) return out.set(...KEYS[last][field]);
@@ -106,7 +137,8 @@ function sample(time: number, field: "pos" | "look", out: THREE.Vector3) {
   );
 }
 
-export function cameraAt(time: number, pos: THREE.Vector3, look: THREE.Vector3) {
-  sample(time, "pos", pos);
-  sample(time, "look", look);
+export function cameraAt(time: number, pos: THREE.Vector3, look: THREE.Vector3, mobile = false) {
+  const keys = mobile ? MOBILE_KEYS : KEYS;
+  sample(keys, time, "pos", pos);
+  sample(keys, time, "look", look);
 }

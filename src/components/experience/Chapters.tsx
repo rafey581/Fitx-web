@@ -3,6 +3,7 @@ import Link from "next/link";
 import { timings, tracking } from "@/lib/fitx/knowledge";
 
 import type { FilmContent } from "./content";
+import { HeroSlides } from "./HeroSlides";
 
 /**
  * Text that plays over the film. Every chapter is a fixed, full-screen frame;
@@ -41,6 +42,7 @@ export function Chapters({ content }: { content: FilmContent }) {
     <div className="film-frames">
       {/* 00 · Origin */}
       <section data-frame="0" className="film-frame" aria-label="FITX">
+        <HeroSlides />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-10 px-5 pb-24 sm:px-10 md:flex-row md:items-end md:justify-between md:pb-14">
           <div>
             <Tag index={0}>Sahiwal · Punjab</Tag>
@@ -123,18 +125,33 @@ export function Chapters({ content }: { content: FilmContent }) {
         <div className="absolute left-5 top-28 sm:left-10">
           <Tag index={3}>The studio</Tag>
         </div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <h2 className="film-display type-statement">
-            <span className="block" data-scramble>
-              Inside
-            </span>
-            <span className="block text-accent" data-scramble>
-              FITX
-            </span>
+        <div className="absolute inset-x-5 top-36 sm:inset-x-10 md:top-40">
+          <h2 className="film-display type-title">
+            Inside <span className="text-accent">FITX</span>
           </h2>
-          <p className="mt-4 max-w-sm px-5 text-sm text-white/70">
+          <p className="mt-3 max-w-md text-sm text-white/70 md:text-base">
             The studio, the sessions and the community — straight from the floor.
           </p>
+        </div>
+        <div className="studio-strips" aria-label="Photos from the FITX studio">
+          {[content.gallery.slice(0, 9), content.gallery.slice(9)].map((row, r) => (
+            <div key={r} className="studio-row">
+              {/* Each row is rendered twice so the loop is seamless. */}
+              <div className={`studio-track ${r === 1 ? "is-reverse" : ""}`}>
+                {[...row, ...row].map((src, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={src + i}
+                    src={src}
+                    alt={i < row.length ? "Inside the FITX studio" : ""}
+                    aria-hidden={i < row.length ? undefined : true}
+                    loading="lazy"
+                    className="studio-photo"
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
         <dl className="absolute inset-x-5 bottom-24 grid grid-cols-3 gap-4 sm:inset-x-10 md:bottom-14">
           {[
@@ -195,6 +212,9 @@ export function Chapters({ content }: { content: FilmContent }) {
             ))}
           </ul>
           <p className="mt-5 max-w-md text-[11px] leading-relaxed text-white/40">{tracking.disclaimer}</p>
+          <Link href="/transformations" className="film-link mt-6">
+            See real transformations
+          </Link>
         </div>
       </section>
 
