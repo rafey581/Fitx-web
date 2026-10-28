@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     "mariadb",
     "sharp",
   ],
+  allowedDevOrigins: ["localhost", "127.0.0.1", "192.168.56.1"],
   experimental: {
     serverActions: {
       // Media uploads go through a server action; the default 1 MB is too small.
