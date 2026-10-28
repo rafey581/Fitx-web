@@ -58,7 +58,7 @@ export function Chapters({ content }: { content: FilmContent }) {
               </span>
             </h1>
           </div>
-          <div className="max-w-xs md:text-right">
+          <div className="max-w-xs md:mb-16 md:text-right">
             <p className="text-sm leading-relaxed text-white/70">
               One-on-one coaching built around your body, your schedule and your goals.
             </p>

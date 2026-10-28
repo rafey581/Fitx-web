@@ -134,7 +134,7 @@ export const defaultContent: FilmContent = {
   address: studio.address,
   phone: studio.phones.join(" / "),
   phones: studio.phones,
-  whatsapp: "",
+  whatsapp: studio.whatsapp,
   email: "info@fitx.pk",
   hours: studio.hoursSummary,
   instagram: "",

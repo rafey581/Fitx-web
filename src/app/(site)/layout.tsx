@@ -5,6 +5,8 @@ import { getMenuLinks, getSiteSettings } from "@/lib/site/settings";
 import { AIChatbot } from "@/components/chatbot/ai-chatbot";
 import { FilmShell, type ShellLink } from "@/components/site/film-shell";
 import { SiteFooter } from "@/components/site/site-footer";
+import { WhatsAppButton } from "@/components/site/whatsapp-button";
+import { studio } from "@/lib/fitx/knowledge";
 
 const monoFont = JetBrains_Mono({
   subsets: ["latin"],
@@ -66,6 +68,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <WhatsAppButton number={general.whatsapp || studio.whatsapp} />
       <AIChatbot />
     </div>
   );

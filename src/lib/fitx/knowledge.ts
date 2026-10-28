@@ -16,6 +16,7 @@ export const studio = {
   founder: "Zohaib Ali",
   address: "Shadman Town, Faisalabad Road, Sahiwal",
   phones: ["0322-6900206", "0300-6900206"],
+  whatsapp: "0322-6900206",
   /** Overall session window across all timings (days not specified by the studio). */
   hoursSummary: "Sessions 8:00 AM – 11:30 PM",
 };
@@ -275,7 +276,7 @@ export const faqs: Faq[] = [
   {
     id: "contact",
     question: "How do I contact FITX?",
-    answer: `${phoneLine} You can also send a message from the Contact page.`,
+    answer: `${phoneLine} WhatsApp: ${studio.whatsapp}. You can also send a message from the Contact page.`,
     keywords: ["contact", "phone", "number", "call", "whatsapp", "mobile", "cell", "reach you", "talk", "rabta"],
   },
   {
@@ -348,7 +349,7 @@ export function systemPrompt(site?: SiteContext): string {
 # Studio facts (the ONLY facts about FITX you may state)
 - Founder & Head Coach: ${studio.founder}. Co-Owner & Executive Director: Rana Usman Munir.
 - Location: ${studio.address}. Map/reviews: the visitor can search "FITX Fitness Studio Shadman Town Sahiwal" on Google Maps.
-- Phone: ${studio.phones.join(" / ")} (WhatsApp availability not confirmed)
+- Phone: ${studio.phones.join(" / ")} ; WhatsApp: ${studio.whatsapp} (or tap the green WhatsApp button on the site)
 Fees (PKR):
 ${feeLines}
 Session timings (the studio has not specified days of the week; never state days):

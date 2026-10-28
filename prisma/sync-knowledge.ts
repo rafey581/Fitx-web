@@ -33,7 +33,7 @@ const OLD_GENERAL: Record<string, string> = {
 const NEW_GENERAL: Record<string, string> = {
   address: studio.address,
   phone: studio.phones.join(" / "),
-  whatsapp: "",
+  whatsapp: studio.whatsapp,
   openingHours: studio.hoursSummary,
 };
 

@@ -54,8 +54,7 @@ const settingsSeed: Array<{ key: string; group: string; value: unknown }> = [
       tagline: "The most premium personal training program",
       address: studio.address,
       phone: studio.phones.join(" / "),
-      // Left blank until the studio confirms which number is on WhatsApp.
-      whatsapp: "",
+      whatsapp: studio.whatsapp,
       email: "info@fitx.pk",
       openingHours: studio.hoursSummary,
       mapEmbed: "",

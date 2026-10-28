@@ -150,7 +150,7 @@ export function Hud({
 
       <nav
         aria-label="Chapters"
-        className="pointer-events-auto absolute bottom-6 left-5 right-24 flex items-center gap-4 sm:left-auto sm:right-28"
+        className="pointer-events-auto absolute bottom-6 left-5 right-24 flex items-center gap-4 sm:left-auto sm:right-[17.5rem]"
       >
         <ol className="flex gap-1.5">
           {CHAPTERS.map((c, i) => (
