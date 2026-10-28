@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { mediaUrl } from "@/lib/media-url";
 import { coachPhoto, rosterPhoto } from "@/components/experience/content";
+import { coaches } from "@/lib/fitx/knowledge";
 import { serializeJsonLd } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +101,8 @@ export default async function TrainerDetailPage({
   const portrait =
     rosterPhoto(trainer.slug) ?? (photo ? mediaUrl({ path: photo.path }) : coachPhoto(trainer.slug, position));
   const firstName = trainer.name.split(" ")[0];
+  // The studio's written profile (quote, focus, who it suits) for roster coaches.
+  const profile = coaches.find((c) => c.slug === trainer.slug);
 
   return (
     <main>
@@ -111,7 +114,14 @@ export default async function TrainerDetailPage({
           <p className="eyebrow eyebrow-bar mt-10">{trainer.title || "Coach"}</p>
           <h1 className="film-display mt-5 type-hero">{trainer.name}</h1>
 
-          {specialties.length > 0 ? (
+          {profile?.specialty ? (
+            <p className="mt-4 text-lg text-white/85">{profile.specialty}</p>
+          ) : null}
+          {profile?.experience ? (
+            <p className="film-mono mt-3 text-[11px] text-accent">{profile.experience}</p>
+          ) : null}
+
+          {specialties.length > 0 && !profile?.focus?.length ? (
             <ul className="mt-6 flex flex-wrap gap-2">
               {specialties.map((specialty) => (
                 <li key={specialty} className="chip">
@@ -162,6 +172,36 @@ export default async function TrainerDetailPage({
           <img src={portrait} alt={trainer.name} className="aspect-[4/5] w-full object-cover" />
         </figure>
       </section>
+
+      {profile?.quote || profile?.focus?.length || profile?.rightFor?.length ? (
+        <section className="mx-auto w-full max-w-7xl px-5 pb-20 sm:px-10">
+          {profile.quote ? (
+            <blockquote className="max-w-3xl border-l-2 border-accent pl-6 font-serif text-2xl leading-snug text-white/90 sm:text-3xl">
+              &ldquo;{profile.quote}&rdquo;
+            </blockquote>
+          ) : null}
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            {[
+              { title: "Training focus", items: profile.focus ?? [] },
+              { title: `Who ${firstName} is right for`, items: profile.rightFor ?? [] },
+            ]
+              .filter((list) => list.items.length > 0)
+              .map((list) => (
+                <div key={list.title} className="card p-6">
+                  <p className="eyebrow">{list.title}</p>
+                  <ul className="mt-4 space-y-3">
+                    {list.items.map((item) => (
+                      <li key={item} className="flex gap-3 leading-relaxed text-white/80">
+                        <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+          </div>
+        </section>
+      ) : null}
 
       {classes.length > 0 ? (
         <section className="mx-auto w-full max-w-7xl px-5 pb-24 sm:px-10">

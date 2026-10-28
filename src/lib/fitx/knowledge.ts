@@ -32,6 +32,12 @@ export type TeamMember = {
   photo: string;
   /** Certifications the studio has confirmed. */
   credentials?: string[];
+  /** Coach profile, as written by the studio. */
+  specialty?: string;
+  experience?: string;
+  quote?: string;
+  focus?: string[];
+  rightFor?: string[];
 };
 
 /** The owners, as written on the studio's own website (Core Team page). */
@@ -65,14 +71,10 @@ export const owners: TeamMember[] = [
   },
 ];
 
-const coach = (slug: string, name: string, role: string): TeamMember => ({
+const coach = (slug: string, profile: Omit<TeamMember, "slug" | "photo">): TeamMember => ({
   slug,
-  name,
-  role,
-  // Profiles are added when the studio supplies their text.
-  summary: "",
-  bio: "",
   photo: `/images/fitx/team/${slug}.webp`,
+  ...profile,
 });
 
 /**
@@ -81,9 +83,70 @@ const coach = (slug: string, name: string, role: string): TeamMember => ({
  */
 export const coaches: TeamMember[] = [
   { ...owners[0], photo: "/images/fitx/team/zohaib-ali-coach.webp" },
-  coach("iqra-zahid", "Iqra Zahid", "Coach"),
-  coach("muazam", "Muazam", "Trainer"),
-  coach("arslan-ahmad", "Arslan Ahmad", "Coach"),
+  coach("iqra-zahid", {
+    name: "Iqra Zahid",
+    role: "Women's Fitness Coach",
+    specialty: "Women’s Fat Loss, Strength & Performance",
+    experience: "7 years of coaching experience",
+    summary:
+      "A dedicated women’s fitness coach at FITX Personal Studio, bringing over seven years of coaching experience.",
+    bio: "Iqra Zahid is a dedicated women’s fitness coach at FITX Personal Studio, bringing over seven years of coaching experience. She has worked with students, brides-to-be, new mothers, and women in their fifties, many beginning their fitness journey from zero. Her approach to women’s training is structured and purposeful, combining progressive strength training, focused fat-loss programming, and practical nutrition guidance tailored to each client’s goals. For Iqra, creating a safe, respectful, and supportive training environment is just as important as the results. Her commitment to thoughtful coaching and genuine client care continues to make her an important part of the FITX team.",
+    quote:
+      "Women don’t need a lighter version of training. They need a proper program, a coach who takes them seriously, and a space where they can focus.",
+    focus: [
+      "Women’s fat loss programs",
+      "Strength training for women",
+      "Postpartum-appropriate programming (with clearance)",
+      "Confidence with technique and equipment",
+    ],
+    rightFor: [
+      "Women starting fitness for the first time",
+      "Women who want structured fat loss with a female coach",
+      "Women who tried home workouts and plateaued",
+    ],
+  }),
+  coach("muazam", {
+    name: "Muazam",
+    role: "Strength & Conditioning Coach",
+    specialty: "Strength, Conditioning & Athletic Performance",
+    summary:
+      "Leads strength and conditioning at FITX: the fundamentals done well, progressed carefully, plus conditioning for sport.",
+    bio: "Muazam leads strength and conditioning at FITX. His sessions are built on the fundamentals done well: squat, hinge, press, pull and carry, progressed carefully so members add load without borrowing from their technique. He also runs the conditioning side of the studio, sleds, medicine ball work, bikes and intervals, for members who play cricket or other sports, and for those who simply want to feel capable. If your form is breaking, Muazam will see it, stop it and fix it. That is the point of coaching.",
+    quote: "Strength is a skill before it is a number. Earn the load with clean reps, and the number takes care of itself.",
+    focus: [
+      "Barbell & dumbbell strength fundamentals",
+      "Conditioning & work capacity",
+      "Sport preparation (cricket, football, martial arts)",
+      "Mobility and movement quality",
+    ],
+    rightFor: [
+      "Members who want to get genuinely stronger",
+      "Young athletes preparing for sport",
+      "Anyone stuck at the same weights for months",
+    ],
+  }),
+  coach("arslan-ahmad", {
+    name: "Arslan Ahmad",
+    role: "Fat Loss Coach",
+    specialty: "Fat Loss, Weight Management & Habit Coaching",
+    experience: "7 years of coaching experience",
+    summary:
+      "Seven years coaching people through fat loss, with plans built around your real week, your home food and weekly check-ins.",
+    bio: "Arslan Ahmad has spent seven years coaching people through fat loss, students, professionals, parents and people whose doctors told them it was time to change. His approach is deliberately unglamorous: a training plan you can repeat, eating guidance that works with the food your household actually cooks, and weekly check-ins that catch problems before they become dropouts. Most of FITX’s fat-loss clients start with Arslan’s consultation, where he maps your starting point, your schedule and a realistic timeline before you ever pick up a weight.",
+    quote:
+      "Fat loss fails when the plan is perfect on paper and impossible at home. I build plans around your real week, then we measure, and we adjust.",
+    focus: [
+      "Sustainable fat loss programs",
+      "Nutrition guidance for Pakistani diets",
+      "Weekly progress tracking",
+      "Training for complete beginners",
+    ],
+    rightFor: [
+      "People whose main goal is losing fat, not just “exercise”",
+      "First-time gym members",
+      "Anyone who has lost weight before and regained it",
+    ],
+  }),
 ];
 
 /** "A, B, C and D" */
@@ -317,12 +380,19 @@ export const faqs: Faq[] = [
     id: "founder",
     question: "Who runs FITX?",
     answer: `FITX was founded by ${studio.founder}, Founder & Head Coach, and is run with Rana Usman Munir, Co-Owner & Executive Director. The coaches are ${coachNames()}. The studio is coaching-led: structured training, technique instruction, personal attention, accountability and progress tracking. Meet them on the Who We Are page.`,
-    keywords: ["founder", "owner", "co-owner", "director", "who runs", "who is", "zohaib", "usman", "rana", "munir", "head coach", "senior", "main coach", "best coach", "coach", "coaches", "trainer", "trainers", "team", "staff"],
+    keywords: ["founder", "owner", "co-owner", "director", "who runs", "who is", "zohaib", "usman", "rana", "munir", "head coach", "senior", "main coach", "best coach", "coach", "trainer", "team", "staff"],
+  },
+  {
+    id: "which-coach",
+    question: "Which coach is right for me?",
+    answer:
+      "Iqra Zahid coaches women: fat loss, strength and first-time training with a female coach. Muazam leads strength & conditioning and sport preparation. Arslan Ahmad specialises in fat loss, nutrition for Pakistani diets and complete beginners. Zohaib Ali, Founder & Head Coach, oversees all programs. See their profiles on the Coaches page.",
+    keywords: ["which coach", "which trainer", "right coach", "coach", "kis coach", "kon sa coach", "konsa coach", "ke sath train", "ke saath train", "who should train", "train me", "train with", "female coach", "female trainer", "lady coach", "lady trainer", "ladies coach", "women coach", "womens coach", "iqra", "muazam", "arslan", "strength coach", "fat loss coach", "athlete", "athletes", "cricket", "football", "sports", "postpartum"],
   },
   {
     id: "nutrition",
     question: "Who handles nutrition at FITX?",
-    answer: `${studio.founder}, FITX's Founder & Head Coach, is a certified nutrition consultant. Ask about nutrition guidance when you book a consultation; the team confirms what is included in your package.`,
+    answer: `${studio.founder}, FITX's Founder & Head Coach, is a certified nutrition consultant. Iqra Zahid and Arslan Ahmad also include practical nutrition guidance in their coaching (Arslan's works with Pakistani home food). Ask about it when you book a consultation; the team confirms what is included in your package.`,
     keywords: ["nutrition", "nutritionist", "nutrition consultant", "diet", "diet plan", "dietitian", "dietician", "meal", "meals", "meal plan", "food", "eating", "calories", "macros", "protein", "khana", "khurak", "ghiza"],
   },
   {
@@ -366,6 +436,19 @@ export function systemPrompt(site?: SiteContext): string {
   const coachLines = site?.coaches.length
     ? site.coaches.map((c) => `- ${c.name}, ${c.role} (page: ${c.href})`).join("\n")
     : coaches.map((m) => `- ${m.name}, ${m.role} (page: /trainers/${m.slug})`).join("\n");
+  const coachProfiles = coaches
+    .filter((m) => m.specialty)
+    .map((m) =>
+      [
+        `- ${m.name} (${m.role}): ${m.specialty}.`,
+        m.experience ? ` ${m.experience}.` : "",
+        ` ${m.bio}`,
+        m.focus?.length ? ` Training focus: ${m.focus.join("; ")}.` : "",
+        m.rightFor?.length ? ` Right for: ${m.rightFor.join("; ")}.` : "",
+        ` Page: /trainers/${m.slug}`,
+      ].join(""),
+    )
+    .join("\n");
   const teamLines = owners
     .map((m) => {
       const credentials = m.credentials?.length ? ` Credentials: ${m.credentials.join(", ")}.` : "";
@@ -400,6 +483,8 @@ Programs listed on the website:
 ${serviceLines}
 Coaches listed on the website:
 ${coachLines}
+Coach profiles (published by the studio; use them to suggest the right coach, e.g. Iqra for women who want a female coach):
+${coachProfiles}
 Owners (published by the studio; you may share these details; see /who-we-are):
 ${teamLines}
 Useful pages: fees /plans, timings /timetable, before & after results /transformations, gallery /gallery, contact & booking form /contact.

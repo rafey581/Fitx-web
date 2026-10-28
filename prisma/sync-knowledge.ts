@@ -222,7 +222,7 @@ async function syncCoachRoster() {
           name: member.name,
           title: member.role,
           bio: member.bio || null,
-          specialties: [],
+          specialties: member.focus ?? [],
           certifications: member.credentials ?? [],
           sortOrder: index + 1,
           isPublished: true,
@@ -241,7 +241,9 @@ async function syncCoachRoster() {
         title: member.role,
         sortOrder: index + 1,
         isPublished: true,
+        // Fill the profile once; text edited in the admin afterwards is kept.
         ...(keep.bio ? {} : { bio: member.bio || null }),
+        ...(Array.isArray(keep.specialties) && keep.specialties.length ? {} : { specialties: member.focus ?? [] }),
       },
     });
     for (const extra of matches.filter((r) => r.id !== keep.id && r.isPublished)) {

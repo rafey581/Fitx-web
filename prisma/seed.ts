@@ -621,7 +621,7 @@ const trainersSeed = coaches.map((member, index) => ({
   name: member.name,
   title: member.role,
   bio: member.bio || null,
-  specialties: [] as string[],
+  specialties: member.focus ?? [],
   certifications: member.credentials ?? [],
   sortOrder: index + 1,
 }));
