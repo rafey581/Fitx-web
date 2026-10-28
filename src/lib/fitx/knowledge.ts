@@ -30,6 +30,8 @@ export type TeamMember = {
   /** Profile text; paragraphs separated by blank lines. */
   bio: string;
   photo: string;
+  /** Certifications the studio has confirmed. */
+  credentials?: string[];
 };
 
 /** The owners, as written on the studio's own website (Core Team page). */
@@ -46,6 +48,7 @@ export const owners: TeamMember[] = [
       "He continues to train personal clients while overseeing the training programs developed at FITX.",
     ].join("\n\n"),
     photo: "/images/fitx/team/zohaib-ali.webp",
+    credentials: ["Certified Nutrition Consultant"],
   },
   {
     slug: "usman-munir",
@@ -78,6 +81,8 @@ export type Fee = {
   summary: string;
   features: string[];
   highlighted: boolean;
+  /** Short tag on the chatbot's fee card. */
+  badge: string;
 };
 
 /** Three-month packages carry a 10% discount against three monthly payments. */
@@ -94,6 +99,7 @@ export const fees: Fee[] = [
       "3 months: Rs 24,300 (save 10%)",
     ],
     highlighted: false,
+    badge: "Group",
   },
   {
     name: "One-to-One Session",
@@ -107,6 +113,7 @@ export const fees: Fee[] = [
       "3 months: Rs 43,200 (save 10%)",
     ],
     highlighted: true,
+    badge: "Personalized",
   },
 ];
 
@@ -289,7 +296,13 @@ export const faqs: Faq[] = [
     id: "founder",
     question: "Who runs FITX?",
     answer: `FITX was founded by ${studio.founder}, Founder & Head Coach, and is run with Rana Usman Munir, Co-Owner & Executive Director. The studio is coaching-led: structured training, technique instruction, personal attention, accountability and progress tracking. Meet them on the Who We Are page.`,
-    keywords: ["founder", "owner", "co-owner", "director", "who runs", "who is", "zohaib", "usman", "rana", "munir", "head coach", "coach", "coaches", "trainer", "trainers", "team", "staff"],
+    keywords: ["founder", "owner", "co-owner", "director", "who runs", "who is", "zohaib", "usman", "rana", "munir", "head coach", "senior", "main coach", "best coach", "coach", "coaches", "trainer", "trainers", "team", "staff"],
+  },
+  {
+    id: "nutrition",
+    question: "Who handles nutrition at FITX?",
+    answer: `${studio.founder}, FITX's Founder & Head Coach, is a certified nutrition consultant. Ask about nutrition guidance when you book a consultation; the team confirms what is included in your package.`,
+    keywords: ["nutrition", "nutritionist", "nutrition consultant", "diet", "diet plan", "dietitian", "dietician", "meal", "meals", "meal plan", "food", "eating", "calories", "macros", "protein", "khana", "khurak", "ghiza"],
   },
   {
     id: "approach",
@@ -332,7 +345,12 @@ export function systemPrompt(site?: SiteContext): string {
   const coachLines = site?.coaches.length
     ? site.coaches.map((c) => `- ${c.name}, ${c.role} (page: ${c.href})`).join("\n")
     : coaches.map((m) => `- ${m.name}, ${m.role} (page: /trainers/${m.slug})`).join("\n");
-  const teamLines = owners.map((m) => `- ${m.name} (${m.role}): ${m.bio.replace(/\n+/g, " ")}`).join("\n");
+  const teamLines = owners
+    .map((m) => {
+      const credentials = m.credentials?.length ? ` Credentials: ${m.credentials.join(", ")}.` : "";
+      return `- ${m.name} (${m.role}): ${m.bio.replace(/\n+/g, " ")}${credentials}`;
+    })
+    .join("\n");
 
   return `You are the friendly front-desk assistant on the website of ${studio.name} ("FITX") in Sahiwal, Pakistan. You chat with visitors like a helpful, upbeat member of the FITX team.
 

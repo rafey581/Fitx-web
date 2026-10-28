@@ -24,6 +24,7 @@ const PARENT: Record<string, string> = {
   frequency: "tracking",
   included: "tracking",
   contact: "location",
+  nutrition: "founder",
 };
 
 const GREETING = /^(hi+|hii+|hello|helo|hey|salam|salaam|assalam|assalamualaikum|aoa|asalam|as-salam|good (morning|evening|afternoon)|yo)\b/;
@@ -93,19 +94,20 @@ function rank(text: string) {
     .sort((a, b) => b.score - a.score);
 }
 
-export function localAnswer(message: string, previous?: string): string {
+const isSmallTalk = (text: string) => GREETING.test(text) || THANKS.test(text) || ACK.test(text);
+
+/** FAQ ids answered by the chatbot's fee cards. */
+const FEE_IDS = new Set(["fees", "group-fee", "one-to-one-fee", "discount"]);
+
+export const feeCardsIntro = "Here are our fees:";
+
+/** The approved answers a message is about, best first (at most two). */
+function matchFaqs(message: string, previous?: string): Faq[] {
   const text = normalise(message);
-  if (!text) return fallbackAnswer;
-
+  if (!text) return [];
   let ranked = rank(text);
-
-  if (ranked.length === 0) {
-    if (GREETING.test(text)) {
-      return "Hi! I can help with FITX fees, timings, Family Hour, progress tracking and how to join. What would you like to know?";
-    }
-    if (THANKS.test(text)) return "You're welcome! Anything else about FITX I can help with?";
-    if (ACK.test(text)) return "Great! Anything else — fees, timings, Family Hour or how to join?";
-  }
+  // Small talk ("hi", "thanks", "ok") is not a follow-up to the last question.
+  if (ranked.length === 0 && isSmallTalk(text)) return [];
 
   // Follow-ups ("and for ladies?", "3 months?") borrow the previous question's topic.
   if (previous) {
@@ -114,7 +116,7 @@ export function localAnswer(message: string, previous?: string): string {
     if (combined.length && (own === 0 || combined[0].score > own + 1)) ranked = combined;
   }
 
-  if (ranked.length === 0) return fallbackAnswer;
+  if (ranked.length === 0) return [];
 
   // Keep the best match, plus the next one when it is about a different topic
   // (e.g. "female fees" → fees + female timings), skipping redundant parents.
@@ -135,5 +137,32 @@ export function localAnswer(message: string, previous?: string): string {
     return child && !picked.includes(child.faq) ? child.faq : p;
   });
 
-  return [...new Set(best)].map((f) => f.answer).join("\n\n");
+  return [...new Set(best)];
+}
+
+/** True when the visitor is asking about fees, so the chat shows the fee cards. */
+export function asksAboutFees(message: string, previous?: string) {
+  return matchFaqs(message, previous).some((f) => FEE_IDS.has(f.id));
+}
+
+/**
+ * Offline reply from the approved answers. With `feeCards`, fee answers are
+ * replaced by a short intro because the chat shows the fee cards below it.
+ */
+export function localAnswer(message: string, previous?: string, { feeCards = false } = {}): string {
+  const text = normalise(message);
+  if (!text) return fallbackAnswer;
+
+  const faqs = matchFaqs(message, previous);
+  if (faqs.length === 0) {
+    if (GREETING.test(text)) {
+      return "Hi! I can help with FITX fees, timings, Family Hour, progress tracking and how to join. What would you like to know?";
+    }
+    if (THANKS.test(text)) return "You're welcome! Anything else about FITX I can help with?";
+    if (ACK.test(text)) return "Great! Anything else — fees, timings, Family Hour or how to join?";
+    return fallbackAnswer;
+  }
+  if (!feeCards) return faqs.map((f) => f.answer).join("\n\n");
+  const others = faqs.filter((f) => !FEE_IDS.has(f.id)).map((f) => f.answer);
+  return [feeCardsIntro, ...others].join("\n\n");
 }

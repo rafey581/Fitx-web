@@ -3,10 +3,11 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 
-import { localAnswer } from "@/lib/fitx/answer";
+import { FeeCards } from "@/components/chatbot/fee-cards";
+import { asksAboutFees, localAnswer } from "@/lib/fitx/answer";
 import { studio, suggestedQuestions } from "@/lib/fitx/knowledge";
 
-type Message = { role: "user" | "assistant"; content: string };
+type Message = { role: "user" | "assistant"; content: string; cards?: "fees" };
 
 const GREETING: Message = {
   role: "assistant",
@@ -45,7 +46,12 @@ export function AIChatbot() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+    const list = listRef.current;
+    if (!list) return;
+    // A fee answer is tall: show it from its start instead of jumping past the cards.
+    const last = [...list.querySelectorAll<HTMLElement>("[data-message]")].at(-1);
+    const top = !busy && messages.at(-1)?.cards && last ? last.offsetTop - 12 : list.scrollHeight;
+    list.scrollTo({ top, behavior: "smooth" });
   }, [messages, busy]);
 
   useEffect(() => {
@@ -63,21 +69,31 @@ export function AIChatbot() {
     setMessages(next);
     setInput("");
     setBusy(true);
-    let reply: string;
+    const previous = messages.filter((m) => m.role === "user").at(-1)?.content;
+    // Offline or server unreachable: answer from the approved answers.
+    const fallback = (): Message => {
+      const cards = asksAboutFees(question, previous);
+      return {
+        role: "assistant",
+        content: localAnswer(question, previous, { feeCards: cards }),
+        cards: cards ? "fees" : undefined,
+      };
+    };
+    let reply: Message;
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // The greeting is UI chrome, not part of the conversation.
-        body: JSON.stringify({ messages: next.slice(1) }),
+        // Only text goes back to the server; cards are display-only.
+        body: JSON.stringify({ messages: next.slice(1).map(({ role, content }) => ({ role, content })) }),
       });
-      const data = (await res.json()) as { reply?: string };
-      reply = data.reply || localAnswer(question);
+      const data = (await res.json()) as { reply?: string; cards?: "fees" };
+      reply = data.reply ? { role: "assistant", content: data.reply, cards: data.cards } : fallback();
     } catch {
-      // Offline or server unreachable: answer from the approved answers.
-      reply = localAnswer(question);
+      reply = fallback();
     }
-    setMessages((m) => [...m, { role: "assistant", content: reply }]);
+    setMessages((m) => [...m, reply]);
     setBusy(false);
   }
 
@@ -124,9 +140,13 @@ export function AIChatbot() {
             </a>
           </header>
 
-          <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
+          <div ref={listRef} className="relative flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
             {messages.map((m, i) => (
-              <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+              <div
+                key={i}
+                data-message
+                className={m.role === "user" ? "flex flex-col items-end" : "flex flex-col items-start gap-2"}
+              >
                 <p
                   className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line ${
                     m.role === "user"
@@ -136,6 +156,11 @@ export function AIChatbot() {
                 >
                   {m.role === "assistant" ? linkify(m.content) : m.content}
                 </p>
+                {m.cards === "fees" ? (
+                  <div className="w-full">
+                    <FeeCards />
+                  </div>
+                ) : null}
               </div>
             ))}
             {busy ? (

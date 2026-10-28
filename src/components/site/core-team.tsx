@@ -30,6 +30,15 @@ export function CoreTeam() {
               <div>
                 <p className="eyebrow">{owner.role}</p>
                 <h3 className="heading-display mt-3 text-2xl text-ink sm:text-3xl">{owner.name}</h3>
+                {owner.credentials?.length ? (
+                  <ul className="mt-4 flex flex-wrap gap-2">
+                    {owner.credentials.map((credential) => (
+                      <li key={credential} className="chip">
+                        {credential}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
                 <div className="mt-5 space-y-4">
                   {owner.bio.split(/\n{2,}/).map((paragraph, k) => (
                     <p key={k} className="leading-relaxed text-muted">

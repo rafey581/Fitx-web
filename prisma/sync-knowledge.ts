@@ -166,9 +166,15 @@ async function syncTeam() {
     where: { slug: founder.slug, bio: OLD_FOUNDER_BIO },
     data: { bio: founder.bio, specialties: [], certifications: [] },
   });
+  // Add confirmed credentials to a profile that has none yet.
+  const current = await prisma.trainer.findUnique({ where: { slug: founder.slug }, select: { certifications: true } });
+  const credentialed =
+    current && Array.isArray(current.certifications) && current.certifications.length === 0 && founder.credentials?.length
+      ? await prisma.trainer.update({ where: { slug: founder.slug }, data: { certifications: founder.credentials } })
+      : null;
   console.info(
-    named.count || profiled.count
-      ? `• Coaches: ${founder.name}'s name, role and profile updated`
+    named.count || profiled.count || credentialed
+      ? `• Coaches: ${founder.name}'s name, role, profile or credentials updated`
       : `• Coaches: ${founder.name} already up to date`,
   );
 

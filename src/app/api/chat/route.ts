@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 import { prisma } from "@/lib/db";
-import { localAnswer } from "@/lib/fitx/answer";
+import { asksAboutFees, localAnswer } from "@/lib/fitx/answer";
 import { askGemini, geminiEnabled } from "@/lib/fitx/gemini";
 import { systemPrompt, type SiteContext } from "@/lib/fitx/knowledge";
 
@@ -50,6 +50,13 @@ async function getSystem(): Promise<string> {
   cachedSystem = { text: systemPrompt(site), at: Date.now() };
   return cachedSystem.text;
 }
+
+// Fee questions get the fee cards (prices from the knowledge base) under the
+// reply, so the model only writes a short intro and never restates prices.
+const FEE_CARDS_NOTE = `
+
+# This reply
+The chat window shows FITX's fee cards directly under your reply: both programs with monthly and 3-month prices and savings, plus body-composition tracking. Write one short sentence in the visitor's language introducing them (e.g. "Here are our fees:" or "Yeh rahi hamari fees:"). If the message also asks something else (e.g. timings), answer that part briefly too. Do not list or repeat any prices.`;
 
 let client: Anthropic | null = null;
 function getClient() {
@@ -105,7 +112,9 @@ export async function POST(request: Request) {
   const question = String(messages[messages.length - 1].content);
   const userTurns = messages.filter((m) => m.role === "user").map((m) => String(m.content));
   const previous = userTurns.length > 1 ? userTurns[userTurns.length - 2] : undefined;
-  const offline = () => Response.json({ reply: localAnswer(question, previous), source: "approved" });
+  const cards = asksAboutFees(question, previous) ? ("fees" as const) : undefined;
+  const offline = () =>
+    Response.json({ reply: localAnswer(question, previous, { feeCards: !!cards }), cards, source: "approved" });
 
   if (limited(ip)) {
     return Response.json(
@@ -114,14 +123,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const SYSTEM = await getSystem();
+  const SYSTEM = (await getSystem()) + (cards ? FEE_CARDS_NOTE : "");
 
   if (geminiEnabled()) {
     const reply = await askGemini(
       SYSTEM,
       messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content) })),
     );
-    if (reply) return Response.json({ reply, source: "ai" });
+    if (reply) return Response.json({ reply, cards, source: "ai" });
   }
 
   const anthropic = getClient();
@@ -144,7 +153,7 @@ export async function POST(request: Request) {
       .join("")
       .trim();
     if (!reply) return offline();
-    return Response.json({ reply, source: "ai" });
+    return Response.json({ reply, cards, source: "ai" });
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {
       console.error("[chat] Anthropic API key rejected; using approved answers.");
