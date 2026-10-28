@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { mediaUrl } from "@/lib/media-url";
-import { coachPhoto } from "@/components/experience/content";
+import { coachPhoto, rosterPhoto } from "@/components/experience/content";
 import { serializeJsonLd } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -97,9 +97,8 @@ export default async function TrainerDetailPage({
         select: { id: true },
       });
   const position = Math.max(0, order.findIndex((t) => t.id === trainer.id));
-  const portrait = photo
-    ? mediaUrl({ path: photo.path })
-    : coachPhoto(trainer.slug, position);
+  const portrait =
+    rosterPhoto(trainer.slug) ?? (photo ? mediaUrl({ path: photo.path }) : coachPhoto(trainer.slug, position));
   const firstName = trainer.name.split(" ")[0];
 
   return (

@@ -13,7 +13,7 @@ import "dotenv/config";
 
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
-import { coaches, fees, studio } from "../src/lib/fitx/knowledge";
+import { coaches, fees, owners, studio } from "../src/lib/fitx/knowledge";
 import { googleReviews } from "../src/lib/fitx/reviews";
 import { PrismaClient } from "../src/generated/prisma/client";
 
@@ -179,25 +179,7 @@ async function syncTeam() {
       : `• Coaches: ${founder.name} already up to date`,
   );
 
-  // Add the other coaches once; later edits in the admin are kept.
-  for (const [index, member] of coaches.entries()) {
-    if (index === 0) continue;
-    const exists = await prisma.trainer.findUnique({ where: { slug: member.slug }, select: { id: true } });
-    if (exists) continue;
-    await prisma.trainer.create({
-      data: {
-        slug: member.slug,
-        name: member.name,
-        title: member.role,
-        bio: member.bio || null,
-        specialties: [],
-        certifications: member.credentials ?? [],
-        sortOrder: index + 1,
-        isPublished: true,
-      },
-    });
-    console.info(`• Coaches: added ${member.name}`);
-  }
+  await syncCoachRoster();
 
   let hidden = 0;
   for (const coach of PLACEHOLDER_COACHES) {
@@ -210,6 +192,77 @@ async function syncTeam() {
   console.info(
     hidden ? `• Coaches: unpublished ${hidden} placeholder coaches` : "• Coaches: no placeholder coaches to unpublish",
   );
+}
+
+/** First name, ignoring titles: "Trainer Malik Muazam" → "muazam". */
+function firstName(name: string) {
+  const words = name.toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  return words.find((w) => !["trainer", "coach", "miss", "mr", "mrs", "sir", "malik", "rana", "hafiz"].includes(w)) ?? "";
+}
+
+/**
+ * Makes the published coaches match the studio's roster (knowledge.ts), even
+ * when coaches were entered in the admin by hand: each roster coach is found by
+ * slug or first name (or created), published in roster order with the
+ * roster's name and role; duplicates and owners who are not coaches are
+ * unpublished. Other coaches added in the admin stay, listed after them.
+ */
+async function syncCoachRoster() {
+  const rows = await prisma.trainer.findMany({ orderBy: { sortOrder: "asc" } });
+  const used = new Set<string>();
+
+  for (const [index, member] of coaches.entries()) {
+    const matches = rows.filter((r) => r.slug === member.slug || firstName(r.name) === firstName(member.name));
+    const keep =
+      matches.find((r) => r.slug === member.slug) ?? matches.find((r) => r.isPublished) ?? matches[0];
+    if (!keep) {
+      await prisma.trainer.create({
+        data: {
+          slug: member.slug,
+          name: member.name,
+          title: member.role,
+          bio: member.bio || null,
+          specialties: [],
+          certifications: member.credentials ?? [],
+          sortOrder: index + 1,
+          isPublished: true,
+        },
+      });
+      console.info(`• Coaches: added ${member.name}`);
+      continue;
+    }
+    used.add(keep.id);
+    const slugFree = keep.slug === member.slug || !rows.some((r) => r.slug === member.slug);
+    await prisma.trainer.update({
+      where: { id: keep.id },
+      data: {
+        slug: slugFree ? member.slug : keep.slug,
+        name: member.name,
+        title: member.role,
+        sortOrder: index + 1,
+        isPublished: true,
+        ...(keep.bio ? {} : { bio: member.bio || null }),
+      },
+    });
+    for (const extra of matches.filter((r) => r.id !== keep.id && r.isPublished)) {
+      used.add(extra.id);
+      await prisma.trainer.update({ where: { id: extra.id }, data: { isPublished: false } });
+      console.info(`• Coaches: unpublished duplicate "${extra.name}" (/trainers/${extra.slug})`);
+    }
+  }
+  console.info(`• Coaches: published ${coaches.map((c) => c.name).join(", ")}`);
+
+  // Owners who are not coaches belong on Who We Are, not in the coaches list.
+  const ownerOnly = owners.filter((o) => !coaches.some((c) => c.slug === o.slug));
+  for (const row of rows) {
+    if (used.has(row.id) || !row.isPublished) continue;
+    if (ownerOnly.some((o) => firstName(o.name) === firstName(row.name))) {
+      await prisma.trainer.update({ where: { id: row.id }, data: { isPublished: false } });
+      console.info(`• Coaches: unpublished owner "${row.name}" (shown on Who We Are instead)`);
+    } else if (row.sortOrder <= coaches.length) {
+      await prisma.trainer.update({ where: { id: row.id }, data: { sortOrder: coaches.length + 1 + row.sortOrder } });
+    }
+  }
 }
 
 /** Adds each Google review once (matched by name); admin edits are kept. */

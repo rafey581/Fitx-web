@@ -94,6 +94,12 @@ export const fallbackServiceImages = [
 
 export const fallbackCoachImages = [PHOTOS.founder, PHOTOS.padsKick, PHOTOS.floorCoach];
 
+/**
+ * The studio's own photo for a roster coach (knowledge.ts). It wins over a photo
+ * uploaded in the admin, so owners' portraits never stand in for coach photos.
+ */
+export const rosterPhoto = (slug: string) => coaches.find((c) => c.slug === slug)?.photo;
+
 /** Portrait for a coach without an uploaded photo: the core team's own, else a studio photo. */
 export const coachPhoto = (slug: string, index: number) =>
   teamMember(slug)?.photo ?? fallbackCoachImages[index % fallbackCoachImages.length];

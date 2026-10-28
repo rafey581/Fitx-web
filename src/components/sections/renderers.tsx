@@ -24,6 +24,7 @@ import {
 import {
   coachPhoto,
   fallbackServiceImages,
+  rosterPhoto,
   galleryImages,
   PHOTOS,
 } from "@/components/experience/content";
@@ -809,10 +810,9 @@ async function TrainersGrid({
 
   const cards = await Promise.all(
     trainers.map(async (trainer, index) => {
-      const photo = trainer.photoId ? await getMedia(trainer.photoId) : null;
-      const portrait = photo
-        ? mediaUrl(photo)
-        : coachPhoto(trainer.slug, index);
+      const roster = rosterPhoto(trainer.slug);
+      const photo = !roster && trainer.photoId ? await getMedia(trainer.photoId) : null;
+      const portrait = roster ?? (photo ? mediaUrl(photo) : coachPhoto(trainer.slug, index));
       const specialties = Array.isArray(trainer.specialties)
         ? (trainer.specialties as unknown[]).map(String)
         : [];

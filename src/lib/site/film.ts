@@ -3,6 +3,7 @@ import "server-only";
 import {
   coachPhoto,
   defaultContent,
+  rosterPhoto,
   fallbackServiceImages,
   galleryImages,
   FILM_COACHES,
@@ -78,7 +79,7 @@ export async function getFilmContent(): Promise<FilmContent> {
           role: t.title ?? "Coach",
           bio: teamMember(t.slug)?.summary || (t.bio ?? "").split(/\n{2,}/)[0],
           href: `/trainers/${t.slug}`,
-          image: t.photo ? mediaUrl(t.photo) : coachPhoto(t.slug, i),
+          image: rosterPhoto(t.slug) ?? (t.photo ? mediaUrl(t.photo) : coachPhoto(t.slug, i)),
         })).concat(trainers.length < FILM_COACHES ? [teamCoach] : []).slice(0, FILM_COACHES)
       : defaultContent.coaches,
     plans: plans.length
