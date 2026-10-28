@@ -98,7 +98,10 @@ export const fallbackCoachImages = [PHOTOS.founder, PHOTOS.padsKick, PHOTOS.floo
 export const coachPhoto = (slug: string, index: number) =>
   teamMember(slug)?.photo ?? fallbackCoachImages[index % fallbackCoachImages.length];
 
-/** Closes the coaches chapter when fewer than three coaches are published. */
+/** Coach monoliths in the home film's coaches chapter. */
+export const FILM_COACHES = 4;
+
+/** Closes the coaches chapter when fewer coaches than that are published. */
 export const teamCoach: FilmCoach = {
   name: "The FITX coaching team",
   role: "Personal & group training",
@@ -179,7 +182,7 @@ export const defaultContent: FilmContent = {
       image: m.photo,
     })),
     teamCoach,
-  ],
+  ].slice(0, FILM_COACHES),
   plans: fees.map((f) => ({
     name: f.name,
     price: formatRs(f.monthly),
@@ -209,7 +212,7 @@ export const CHAPTERS = [
   { id: "forge", label: "Forge", vh: 200 },
   { id: "programs", label: "Programs", vh: 320 },
   { id: "studio", label: "Studio", vh: 220 },
-  { id: "coaches", label: "Coaches", vh: 260 },
+  { id: "coaches", label: "Coaches", vh: 330 },
   { id: "progress", label: "Progress", vh: 220 },
   { id: "plans", label: "Fees", vh: 200 },
   { id: "join", label: "Join", vh: 170 },

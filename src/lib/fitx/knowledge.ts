@@ -65,14 +65,35 @@ export const owners: TeamMember[] = [
   },
 ];
 
-/**
- * Coaches with an approved profile. Zohaib is both an owner and a coach; the
- * other coaches from the studio's Coaches page are added once their photos and
- * profiles are supplied.
- */
-export const coaches: TeamMember[] = owners.filter((m) => m.slug === "zohaib-ali");
+const coach = (slug: string, name: string, role: string): TeamMember => ({
+  slug,
+  name,
+  role,
+  // Profiles are added when the studio supplies their text.
+  summary: "",
+  bio: "",
+  photo: `/images/fitx/team/${slug}.webp`,
+});
 
-export const teamMember = (slug: string) => [...owners, ...coaches].find((m) => m.slug === slug);
+/**
+ * The coaches, in the order of the studio's own Coaches page. Zohaib is both
+ * an owner and a coach; on the coaches pages he appears in his training photo.
+ */
+export const coaches: TeamMember[] = [
+  { ...owners[0], photo: "/images/fitx/team/zohaib-ali-coach.webp" },
+  coach("iqra-zahid", "Iqra Zahid", "Coach"),
+  coach("muazam", "Muazam", "Trainer"),
+  coach("arslan-ahmad", "Arslan Ahmad", "Coach"),
+];
+
+/** "A, B, C and D" */
+const coachNames = () => {
+  const names = coaches.map((c) => c.name);
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names.join("");
+};
+
+/** Coach details first (coach photo), then owners. */
+export const teamMember = (slug: string) => [...coaches, ...owners].find((m) => m.slug === slug);
 
 export type Fee = {
   name: string;
@@ -295,7 +316,7 @@ export const faqs: Faq[] = [
   {
     id: "founder",
     question: "Who runs FITX?",
-    answer: `FITX was founded by ${studio.founder}, Founder & Head Coach, and is run with Rana Usman Munir, Co-Owner & Executive Director. The studio is coaching-led: structured training, technique instruction, personal attention, accountability and progress tracking. Meet them on the Who We Are page.`,
+    answer: `FITX was founded by ${studio.founder}, Founder & Head Coach, and is run with Rana Usman Munir, Co-Owner & Executive Director. The coaches are ${coachNames()}. The studio is coaching-led: structured training, technique instruction, personal attention, accountability and progress tracking. Meet them on the Who We Are page.`,
     keywords: ["founder", "owner", "co-owner", "director", "who runs", "who is", "zohaib", "usman", "rana", "munir", "head coach", "senior", "main coach", "best coach", "coach", "coaches", "trainer", "trainers", "team", "staff"],
   },
   {

@@ -5,6 +5,7 @@ import {
   defaultContent,
   fallbackServiceImages,
   galleryImages,
+  FILM_COACHES,
   teamCoach,
   type FilmContent,
 } from "@/components/experience/content";
@@ -39,7 +40,7 @@ export async function getFilmContent(): Promise<FilmContent> {
     prisma.trainer.findMany({
       where: { isPublished: true },
       orderBy: { sortOrder: "asc" },
-      take: 3,
+      take: FILM_COACHES,
       include: { photo: { select: { path: true } } },
     }),
     prisma.plan.findMany({
@@ -75,10 +76,10 @@ export async function getFilmContent(): Promise<FilmContent> {
       ? trainers.map((t, i) => ({
           name: t.name,
           role: t.title ?? "Coach",
-          bio: teamMember(t.slug)?.summary ?? (t.bio ?? "").split(/\n{2,}/)[0],
+          bio: teamMember(t.slug)?.summary || (t.bio ?? "").split(/\n{2,}/)[0],
           href: `/trainers/${t.slug}`,
           image: t.photo ? mediaUrl(t.photo) : coachPhoto(t.slug, i),
-        })).concat(trainers.length < 3 ? [teamCoach] : [])
+        })).concat(trainers.length < FILM_COACHES ? [teamCoach] : []).slice(0, FILM_COACHES)
       : defaultContent.coaches,
     plans: plans.length
       ? plans.map((p) => ({

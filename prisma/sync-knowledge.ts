@@ -14,6 +14,7 @@ import "dotenv/config";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 import { coaches, fees, studio } from "../src/lib/fitx/knowledge";
+import { googleReviews } from "../src/lib/fitx/reviews";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL;
@@ -178,6 +179,26 @@ async function syncTeam() {
       : `• Coaches: ${founder.name} already up to date`,
   );
 
+  // Add the other coaches once; later edits in the admin are kept.
+  for (const [index, member] of coaches.entries()) {
+    if (index === 0) continue;
+    const exists = await prisma.trainer.findUnique({ where: { slug: member.slug }, select: { id: true } });
+    if (exists) continue;
+    await prisma.trainer.create({
+      data: {
+        slug: member.slug,
+        name: member.name,
+        title: member.role,
+        bio: member.bio || null,
+        specialties: [],
+        certifications: member.credentials ?? [],
+        sortOrder: index + 1,
+        isPublished: true,
+      },
+    });
+    console.info(`• Coaches: added ${member.name}`);
+  }
+
   let hidden = 0;
   for (const coach of PLACEHOLDER_COACHES) {
     const result = await prisma.trainer.updateMany({
@@ -191,6 +212,20 @@ async function syncTeam() {
   );
 }
 
+/** Adds each Google review once (matched by name); admin edits are kept. */
+async function syncGoogleReviews() {
+  let added = 0;
+  for (const [index, review] of googleReviews.entries()) {
+    const exists = await prisma.testimonial.findFirst({ where: { name: review.name }, select: { id: true } });
+    if (exists) continue;
+    await prisma.testimonial.create({
+      data: { name: review.name, quote: review.text, rating: null, sortOrder: index + 1, isPublished: true },
+    });
+    added += 1;
+  }
+  console.info(added ? `• Testimonials: added ${added} Google reviews` : "• Testimonials: Google reviews already added");
+}
+
 async function main() {
   console.info("Syncing FITX knowledge base into the database…");
   await syncSettings();
@@ -198,6 +233,7 @@ async function main() {
   await syncTimetable();
   await syncTeam();
   await syncTestimonials();
+  await syncGoogleReviews();
   console.info("Done.");
 }
 

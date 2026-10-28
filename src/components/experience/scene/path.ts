@@ -13,7 +13,7 @@ export const WORLD = {
   tunnel: { start: -4, count: 24, gap: 2.35 },
   programs: { z0: -74, step: -20, x: 2.4 },
   studio: { z0: -176, step: -5.2, radius: 4.4 },
-  coaches: { z: -262, xs: [-10, 0, 10] },
+  coaches: { z: -262, xs: [-15, -5, 5, 15] },
   floorY: -2.2,
   progress: new THREE.Vector3(2.7, 0.5, -300),
   plans: { z: -332, xs: [-3.4, 0, 3.4], pair: [-2.2, 2.2] },
@@ -34,7 +34,7 @@ const programKeys: Key[] = [0, 1, 2, 3, 4].flatMap((k) => {
 });
 
 const coachKeys: Key[] = WORLD.coaches.xs.flatMap((x, k) => {
-  const t = 4.18 + k * 0.29;
+  const t = 4.12 + k * 0.22;
   const z = WORLD.coaches.z;
   return [
     { t, pos: [x + 0.9, 0.7, z + 8.2] as V3, look: [x - 1.1, 0.55, z] as V3 },
@@ -61,9 +61,9 @@ const mobileProgramKeys: Key[] = [0, 1, 2, 3, 4].flatMap((k) => {
 });
 
 const mobileCoachKeys: Key[] = WORLD.coaches.xs.flatMap((x, k) => {
-  const t = 4.18 + k * 0.29;
+  const t = 4.12 + k * 0.22;
   const z = WORLD.coaches.z;
-  const turn = -x * 0.05;
+  const turn = -x * 0.033;
   return [
     { t, pos: facing(x, 0.7, z, turn, 7.6), look: [x, 0.7, z] as V3 },
     { t: t + 0.09, pos: facing(x, 0.7, z, turn, 7.3), look: [x, 0.7, z] as V3 },

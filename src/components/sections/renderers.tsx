@@ -28,6 +28,8 @@ import {
   PHOTOS,
 } from "@/components/experience/content";
 import { familyHour, studio, timings as sessionTimings } from "@/lib/fitx/knowledge";
+import { reviewPhoto } from "@/lib/fitx/reviews";
+import { ReviewWall } from "@/components/site/review-wall";
 import { LeadForm } from "@/components/site/lead-form";
 import { Home3DHero } from "@/components/site/Home3DHero";
 
@@ -1011,7 +1013,7 @@ async function Testimonials({
     return {
       name: pickStr(item, "name"),
       quote: pickStr(item, "quote"),
-      rating: pickNum(item, "rating", 5),
+      rating: pickNum(item, "rating", 5) as number | null,
       photoId: pickStr(item, "photo"),
     };
   });
@@ -1027,7 +1029,7 @@ async function Testimonials({
         ).map((item) => ({
           name: item.name,
           quote: item.quote,
-          rating: item.rating ?? 5,
+          rating: item.rating,
           photoId: item.photoId ?? "",
         }));
 
@@ -1074,6 +1076,41 @@ async function Testimonials({
     );
   }
 
+  // Many reviews (e.g. the studio's Google reviews): a wall, not a slider.
+  if (items.length > 4) {
+    const reviews = await Promise.all(
+      items.map(async (item) => {
+        const photo = item.photoId ? await getMedia(item.photoId) : null;
+        return {
+          name: item.name,
+          quote: item.quote,
+          rating: item.rating,
+          photo: photo ? mediaUrl(photo) : (reviewPhoto(item.name) ?? null),
+        };
+      }),
+    );
+    return (
+      <SectionShell style={style}>
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <Heading
+            eyebrow={pickStr(content, "eyebrow")}
+            heading={pickStr(content, "heading")}
+            slash={pickBool(content, "showAccentSlash", true)}
+          />
+          <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" className="footer-link w-fit shrink-0">
+            All reviews on Google
+            <span aria-hidden="true" className="footer-link-arrow">
+              ↗
+            </span>
+          </a>
+        </div>
+        <div className="mt-10">
+          <ReviewWall reviews={reviews} />
+        </div>
+      </SectionShell>
+    );
+  }
+
   const slides = await Promise.all(
     items.map(async (item, index) => {
       const photo = item.photoId ? await getMedia(item.photoId) : null;
@@ -1098,7 +1135,7 @@ async function Testimonials({
               {item.quote}
             </blockquote>
             <p className="eyebrow mt-7">{item.name}</p>
-            <Stars rating={item.rating} />
+            {item.rating ? <Stars rating={item.rating} /> : null}
           </div>
         </div>
       );

@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Edges } from "@react-three/drei";
 import * as THREE from "three";
 
-import type { FilmContent } from "../content";
+import { FILM_COACHES, type FilmContent } from "../content";
 import { film, ramp } from "../store";
 import { PhotoPanel } from "./PhotoPanel";
 import { WORLD } from "./path";
@@ -38,9 +38,9 @@ export function Coaches({ coaches }: { coaches: FilmContent["coaches"] }) {
   const slabHeight = 5.6;
   return (
     <group>
-      {coaches.slice(0, 3).map((c, k) => {
+      {coaches.slice(0, FILM_COACHES).map((c, k) => {
         const x = xs[k];
-        const turn = -x * 0.05;
+        const turn = -x * 0.033;
         return (
           <group key={c.name + k} position={[x, 0, z]} rotation={[0, turn, 0]}>
             <mesh position={[0, WORLD.floorY + slabHeight / 2, -0.2]}>

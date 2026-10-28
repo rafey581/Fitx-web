@@ -18,6 +18,7 @@ import bcrypt from "bcryptjs";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 import { coaches, fees, studio } from "../src/lib/fitx/knowledge";
+import { googleReviews } from "../src/lib/fitx/reviews";
 import { defaultTheme } from "../src/lib/theme/tokens";
 import {
   LinkType,
@@ -619,14 +620,20 @@ const trainersSeed = coaches.map((member, index) => ({
   slug: member.slug,
   name: member.name,
   title: member.role,
-  bio: member.bio,
+  bio: member.bio || null,
   specialties: [] as string[],
   certifications: member.credentials ?? [],
   sortOrder: index + 1,
 }));
 
-// Real client reviews are added in the admin (Testimonials); none are invented.
-const testimonialsSeed: Array<{ name: string; quote: string; rating: number; sortOrder: number }> = [];
+// The studio's Google reviews, word for word (src/lib/fitx/reviews.ts). Star
+// ratings were not supplied, so none are stored.
+const testimonialsSeed = googleReviews.map((review, index) => ({
+  name: review.name,
+  quote: review.text,
+  rating: null,
+  sortOrder: index + 1,
+}));
 
 // Fees and timings come from the studio's approved knowledge base
 // (src/lib/fitx/knowledge.ts) so the site, chatbot and seed never disagree.

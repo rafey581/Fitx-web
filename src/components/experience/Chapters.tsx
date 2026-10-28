@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { timings, tracking } from "@/lib/fitx/knowledge";
 
-import type { FilmContent } from "./content";
+import { FILM_COACHES, type FilmContent } from "./content";
 import { HeroSlides } from "./HeroSlides";
 
 /**
@@ -30,11 +30,11 @@ function Tag({ index, children }: { index: number; children: React.ReactNode }) 
 }
 
 export const programBeat = (k: number) => 0.135 + k * 0.185;
-export const coachBeat = (k: number) => 0.225 + k * 0.29;
+export const coachBeat = (k: number) => 0.165 + k * 0.22;
 
 export function Chapters({ content }: { content: FilmContent }) {
   const services = content.services.slice(0, 5);
-  const coaches = content.coaches.slice(0, 3);
+  const coaches = content.coaches.slice(0, FILM_COACHES);
   const plans = content.plans.slice(0, 3);
   const whatsapp = content.whatsapp.replace(/\D/g, "").replace(/^0(?=3)/, "92");
 
