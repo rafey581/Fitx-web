@@ -21,16 +21,12 @@ import {
   type SectionStyle,
 } from "@/lib/sections/types";
 
-import {
-  coachPhoto,
-  fallbackServiceImages,
-  rosterPhoto,
-  galleryImages,
-  PHOTOS,
-} from "@/components/experience/content";
+import { coachPhoto, fallbackServiceImages, rosterPhoto } from "@/components/experience/content";
 import { familyHour, studio, timings as sessionTimings } from "@/lib/fitx/knowledge";
 import { reviewPhoto } from "@/lib/fitx/reviews";
 import { ReviewWall } from "@/components/site/review-wall";
+import { PhotoGallery } from "@/components/site/photo-gallery";
+import { galleryPhotos } from "@/lib/fitx/gallery";
 import { LeadForm } from "@/components/site/lead-form";
 import { Home3DHero } from "@/components/site/Home3DHero";
 
@@ -1886,13 +1882,7 @@ async function Gallery({
   }
 
   if (cells.length === 0) {
-    // Nothing in the gallery module yet: show the studio's own photo set.
-    const studio = [
-      ...galleryImages,
-      PHOTOS.floorWide,
-      PHOTOS.padsKick,
-      PHOTOS.curlTrainer,
-    ];
+    // Nothing in the gallery module: the studio's own photo set, with filters and a viewer.
     return (
       <SectionShell style={style}>
         <Heading
@@ -1900,21 +1890,8 @@ async function Gallery({
           heading={pickStr(content, "heading")}
           slash={pickBool(content, "showAccentSlash", true)}
         />
-        <div className="mt-10 columns-2 gap-4 lg:columns-3">
-          {studio.map((src, index) => (
-            <figure
-              key={src}
-              className="group mb-4 break-inside-avoid overflow-hidden rounded-brand border border-line"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={`Inside FITX ${index + 1}`}
-                loading="lazy"
-                className="w-full object-cover transition duration-700 group-hover:scale-[1.05]"
-              />
-            </figure>
-          ))}
+        <div className="mt-8">
+          <PhotoGallery photos={galleryPhotos} />
         </div>
       </SectionShell>
     );

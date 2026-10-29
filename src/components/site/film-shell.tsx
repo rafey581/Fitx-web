@@ -95,7 +95,9 @@ export function FilmShell({
           }
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+      // Any visible part reveals it: a ratio would never be reached by a
+      // section taller than the screen (e.g. the gallery on a phone).
+      { rootMargin: "0px 0px -8% 0px", threshold: 0 },
     );
     targets.forEach((el) => {
       if (el.classList.contains("is-in")) return;
