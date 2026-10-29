@@ -291,6 +291,7 @@ export function Chapters({ content }: { content: FilmContent }) {
           <p>
             <span className="footer-label mb-1 block">Visit</span>
             {content.address}
+            <span className="mt-1 block text-white/60">Sat–Thu · Friday closed</span>
           </p>
           {(["Male", "Female", "Family"] as const).map((group) => (
             <p key={group}>

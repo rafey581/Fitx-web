@@ -17,8 +17,19 @@ export const studio = {
   address: "Shadman Town, Faisalabad Road, Sahiwal",
   phones: ["0322-6900206", "0300-6900206"],
   whatsapp: "0322-6900206",
-  /** Overall session window across all timings (days not specified by the studio). */
-  hoursSummary: "Sessions 8:00 AM – 11:30 PM",
+  /** Open days; the studio is closed on Friday. */
+  days: "Saturday to Thursday",
+  closedDay: "Friday",
+  /** Overall session window across all timings. */
+  hoursSummary: "Sat–Thu · 8:00 AM – 11:30 PM · Friday closed",
+  social: {
+    facebook: "https://www.facebook.com/fitxbootcamp/",
+    instagram: "https://www.instagram.com/fitxfitnessstudio/",
+  },
+  /** The studio's Google Maps pin. */
+  geo: { latitude: 30.689863, longitude: 73.087897 },
+  mapEmbed:
+    "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d6862.029363722816!2d73.087897!3d30.689863!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3922b7ea71338257%3A0xffab81345e47ed4d!2sFITX%20Personal%20Training%20Studio!5e0!3m2!1sen!2sus!4v1793235343967!5m2!1sen!2sus",
 };
 
 export type TeamMember = {
@@ -301,13 +312,19 @@ export const faqs: Faq[] = [
   {
     id: "timings",
     question: "What are your timings?",
-    answer: "Male sessions: 8:00 AM–10:00 AM and 6:00 PM–10:00 PM. Female sessions: 10:30 AM–1:00 PM and 3:00 PM–6:00 PM. Family Hour: 10:30 PM–11:30 PM. Contact FITX to confirm current slot availability.",
+    answer: "FITX is open Saturday to Thursday (closed on Friday). Male sessions: 8:00 AM–10:00 AM and 6:00 PM–10:00 PM. Female sessions: 10:30 AM–1:00 PM and 3:00 PM–6:00 PM. Family Hour: 10:30 PM–11:30 PM. Contact FITX to confirm current slot availability.",
     keywords: ["timing", "timings", "time", "times", "hours", "hour", "open", "close", "closing", "opening", "schedule", "slot", "slots", "when", "waqt", "kab", "morning", "evening", "night"],
+  },
+  {
+    id: "days",
+    question: "Which days are you open?",
+    answer: "FITX is open Saturday to Thursday and closed on Friday. Sessions run from 8:00 AM to 11:30 PM.",
+    keywords: ["friday", "jumma", "juma", "jummah", "day", "days", "saturday", "sunday", "monday", "tuesday", "wednesday", "thursday", "weekend", "off day", "holiday", "chutti", "closed", "open today", "aaj"],
   },
   {
     id: "open-close",
     question: "When do you open and close?",
-    answer: "The first session starts at 8:00 AM and the last one, Family Hour, ends at 11:30 PM. Male evening sessions end at 10:00 PM and female sessions end at 6:00 PM. Contact FITX to confirm current slot availability.",
+    answer: "FITX is open Saturday to Thursday; the first session starts at 8:00 AM and the last one, Family Hour, ends at 11:30 PM. Closed on Friday. Male evening sessions end at 10:00 PM and female sessions end at 6:00 PM. Contact FITX to confirm current slot availability.",
     keywords: ["close", "closing", "closes", "band", "khulta", "khulti", "open", "opening", "opens", "last session", "first session", "kitne baje", "late", "early"],
   },
   {
@@ -470,11 +487,12 @@ export function systemPrompt(site?: SiteContext): string {
 
 # Studio facts (the ONLY facts about FITX you may state)
 - Founder & Head Coach: ${studio.founder}. Co-Owner & Executive Director: Rana Usman Munir.
+- Facebook: ${studio.social.facebook} · Instagram: ${studio.social.instagram}
 - Location: ${studio.address}. Map/reviews: the visitor can search "FITX Fitness Studio Shadman Town Sahiwal" on Google Maps.
 - Phone: ${studio.phones.join(" / ")} ; WhatsApp: ${studio.whatsapp} (or tap the green WhatsApp button on the site)
 Fees (PKR):
 ${feeLines}
-Session timings (the studio has not specified days of the week; never state days):
+Open ${studio.days}; closed on ${studio.closedDay}. Session timings:
 ${timingLines}
 Family Hour: ${familyHour.time}. ${familyHour.description} There is no confirmed family fee or discount; do not promise the Group fee applies — the team confirms the per-person fee.
 Progress tracking: ${tracking.summary} Possible measurements: ${tracking.metrics.join(", ")}. ${tracking.disclaimer}

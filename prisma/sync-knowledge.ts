@@ -25,11 +25,13 @@ if (!connectionString) {
 
 const prisma = new PrismaClient({ adapter: new PrismaMariaDb(connectionString) });
 
-const OLD_GENERAL: Record<string, string> = {
-  address: "Sahiwal, Punjab, Pakistan",
-  phone: "+92 300 0000000",
-  whatsapp: "+92 300 0000000",
-  openingHours: "Mon–Sat · 6:00am – 10:00pm",
+// Earlier placeholder or synced values that may be replaced (anything else was
+// typed in the admin and is kept).
+const OLD_GENERAL: Record<string, string[]> = {
+  address: ["Sahiwal, Punjab, Pakistan"],
+  phone: ["+92 300 0000000"],
+  whatsapp: ["+92 300 0000000"],
+  openingHours: ["Mon–Sat · 6:00am – 10:00pm", "Sessions 8:00 AM – 11:30 PM"],
 };
 
 const NEW_GENERAL: Record<string, string> = {
@@ -37,6 +39,9 @@ const NEW_GENERAL: Record<string, string> = {
   phone: studio.phones.join(" / "),
   whatsapp: studio.whatsapp,
   openingHours: studio.hoursSummary,
+  facebook: studio.social.facebook,
+  instagram: studio.social.instagram,
+  mapEmbed: studio.mapEmbed,
 };
 
 const OLD_PLANS = ["Starter", "Commit", "Transform"];
@@ -56,7 +61,7 @@ async function syncSettings() {
   for (const [field, value] of Object.entries(NEW_GENERAL)) {
     const now = typeof current[field] === "string" ? (current[field] as string) : "";
     if (now === value) continue;
-    if (now === "" || now === OLD_GENERAL[field]) {
+    if (now === "" || OLD_GENERAL[field]?.includes(now)) {
       changes[field] = value;
     } else {
       console.info(`  · kept general.${field} (edited in admin): ${now}`);

@@ -1624,7 +1624,8 @@ async function TimetableSection({
             </div>
           ))}
           <p className="text-sm text-muted md:col-span-3">
-            Call {studio.phones.join(" or ")} to confirm current slot availability.
+            Open {studio.days} · closed on {studio.closedDay}. Call {studio.phones.join(" or ")} to confirm current slot
+            availability.
           </p>
         </div>
       )}

@@ -19,6 +19,7 @@ const PARENT: Record<string, string> = {
   male: "timings",
   family: "timings",
   "open-close": "timings",
+  days: "timings",
   report: "tracking",
   app: "tracking",
   frequency: "tracking",

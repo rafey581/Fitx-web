@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
+import { studio } from "@/lib/fitx/knowledge";
+
 import { CHAPTERS, type FilmContent } from "./content";
 import { film, useFilmUi } from "./store";
 
@@ -144,7 +146,9 @@ export function Hud({
       </header>
 
       <div className="film-mono absolute bottom-6 left-5 hidden text-[10px] leading-relaxed text-white/45 sm:left-10 md:block">
-        <p>30.6682° N · 73.1114° E</p>
+        <p>
+          {studio.geo.latitude.toFixed(4)}° N · {studio.geo.longitude.toFixed(4)}° E
+        </p>
         <p>{content.hours}</p>
       </div>
 

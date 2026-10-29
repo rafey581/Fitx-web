@@ -46,7 +46,14 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     name: general.businessName,
     address: general.address || "Sahiwal, Punjab, Pakistan",
     telephone: general.phone || undefined,
-    geo: { "@type": "GeoCoordinates", latitude: 30.6682, longitude: 73.1114 },
+    geo: { "@type": "GeoCoordinates", ...studio.geo },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
+      opens: "08:00",
+      closes: "23:30",
+    },
+    sameAs: [general.facebook || studio.social.facebook, general.instagram || studio.social.instagram],
   };
 
   return (
