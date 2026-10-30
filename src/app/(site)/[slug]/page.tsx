@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { renderSections } from "@/components/sections/renderers";
 import { CoreTeam } from "@/components/site/core-team";
+import { pageSeo, seoMetadata } from "@/lib/fitx/seo";
 import { getPublicPageBySlug } from "@/lib/site/pages";
 
 export const dynamic = "force-dynamic";
@@ -23,10 +24,16 @@ export async function generateMetadata({
   if (!data) return {};
 
   const { page } = data;
+  // Pages with written search copy (src/lib/fitx/seo.ts) use it.
+  if (pageSeo[`/${slug}`]) {
+    const metadata = seoMetadata(`/${slug}`);
+    if (page.noindex) metadata.robots = { index: false, follow: false };
+    return metadata;
+  }
   const title = page.seoTitle || page.title;
   const description = page.seoDescription ?? undefined;
 
-  const metadata: Metadata = { title, description };
+  const metadata: Metadata = { title, description, alternates: { canonical: `/${slug}` } };
   if (page.noindex) {
     metadata.robots = { index: false, follow: false };
   }
@@ -68,7 +75,7 @@ export default async function PublicPage({
       <main className="min-h-full">
         {await renderSections(story ? [story] : [])}
         <CoreTeam />
-        {await renderSections(rest)}
+        {await renderSections(rest, false)}
       </main>
     );
   }

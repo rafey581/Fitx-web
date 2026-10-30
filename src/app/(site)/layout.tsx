@@ -7,6 +7,8 @@ import { FilmShell, type ShellLink } from "@/components/site/film-shell";
 import { SiteFooter } from "@/components/site/site-footer";
 import { WhatsAppButton } from "@/components/site/whatsapp-button";
 import { studio } from "@/lib/fitx/knowledge";
+import { env } from "@/lib/env";
+import { gymJsonLd, jsonLd } from "@/lib/fitx/seo";
 
 const monoFont = JetBrains_Mono({
   subsets: ["latin"],
@@ -40,21 +42,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     if (!links.some((l) => l.href === extra.href)) links.push({ ...extra, children: [] });
   }
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: general.businessName,
-    address: general.address || "Sahiwal, Punjab, Pakistan",
-    telephone: general.phone || undefined,
-    geo: { "@type": "GeoCoordinates", ...studio.geo },
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
-      opens: "08:00",
-      closes: "23:30",
-    },
-    sameAs: [general.facebook || studio.social.facebook, general.instagram || studio.social.instagram],
-  };
+  // The studio as a local business, on every page (Google's map and knowledge panel).
+  const structuredData = gymJsonLd(env.APP_URL, general);
 
   return (
     <div className={`${monoFont.variable} film-root film-site w-full`}>
@@ -73,7 +62,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
       <WhatsAppButton number={general.whatsapp || studio.whatsapp} />
       <AIChatbot />

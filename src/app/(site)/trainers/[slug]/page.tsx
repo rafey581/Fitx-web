@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 import { mediaUrl } from "@/lib/media-url";
 import { coachPhoto, rosterPhoto } from "@/components/experience/content";
 import { coaches } from "@/lib/fitx/knowledge";
+import { breadcrumbJsonLd } from "@/lib/fitx/seo";
 import { serializeJsonLd } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -50,11 +51,28 @@ export async function generateMetadata({
     },
   });
   if (!trainer || !trainer.isPublished) return {};
-  const title = trainer.seoTitle || trainer.name;
+  const profile = coaches.find((c) => c.slug === slug);
+  const title =
+    trainer.seoTitle ||
+    `${trainer.name}${trainer.title ? ` – ${trainer.title}` : ""} in Sahiwal`;
   const description =
     trainer.seoDescription ||
-    (trainer.title ? `${trainer.name} — ${trainer.title} at FITX.` : undefined);
-  return { title, description, openGraph: { title, description } };
+    (profile?.summary
+      ? `${profile.summary} Train with ${trainer.name.split(" ")[0]} at FITX, Shadman Town, Sahiwal.`
+      : trainer.title
+        ? `${trainer.name}, ${trainer.title} at FITX Personal Fitness Training Studio, Sahiwal.`
+        : undefined);
+  return {
+    title,
+    description,
+    alternates: { canonical: `/trainers/${slug}` },
+    openGraph: {
+      title: `${title} | FITX`,
+      description,
+      url: `/trainers/${slug}`,
+      images: profile ? [{ url: profile.photo }] : undefined,
+    },
+  };
 }
 
 export default async function TrainerDetailPage({
@@ -224,17 +242,26 @@ export default async function TrainerDetailPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: serializeJsonLd({
-            "@context": "https://schema.org",
-            "@type": "Person",
-            name: trainer.name,
-            jobTitle: trainer.title || undefined,
-            description: trainer.bio?.split(/\n{2,}/)[0]?.trim() || undefined,
-            url: new URL(`/trainers/${trainer.slug}`, env.APP_URL).toString(),
-            ...(trainer.specialties && Array.isArray(trainer.specialties)
-              ? { knowsAbout: trainer.specialties.map(String) }
-              : {}),
-          }),
+          __html: serializeJsonLd([
+            {
+              "@context": "https://schema.org",
+              "@type": "Person",
+              name: trainer.name,
+              jobTitle: trainer.title || undefined,
+              description: trainer.bio?.split(/\n{2,}/)[0]?.trim() || undefined,
+              url: new URL(`/trainers/${trainer.slug}`, env.APP_URL).toString(),
+              image: new URL(portrait, env.APP_URL).toString(),
+              worksFor: { "@id": new URL("/#gym", env.APP_URL).toString() },
+              ...(profile?.credentials?.length ? { hasCredential: profile.credentials } : {}),
+              ...(trainer.specialties && Array.isArray(trainer.specialties)
+                ? { knowsAbout: trainer.specialties.map(String) }
+                : {}),
+            },
+            breadcrumbJsonLd(env.APP_URL, [
+              { name: "Coaches", path: "/coaches" },
+              { name: trainer.name, path: `/trainers/${trainer.slug}` },
+            ]),
+          ]),
         }}
       />
     </main>

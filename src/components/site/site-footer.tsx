@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { MenuLocation } from "@/generated/prisma/enums";
 
+import { landingPages } from "@/lib/fitx/landing";
 import { getMenuLinks, getSiteSettings } from "@/lib/site/settings";
 
 /** Resolve a social handle to a profile URL (blank means hidden). */
@@ -159,7 +160,19 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-sm text-white/60">
+        <nav aria-label="Popular" className="mt-12 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm">
+          <span className="footer-label">Popular</span>
+          {landingPages.map((page) => (
+            <Link key={page.path} href={page.path} className="footer-link">
+              {page.label}
+            </Link>
+          ))}
+          <Link href="/faq" className="footer-link">
+            FAQ
+          </Link>
+        </nav>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-sm text-white/60">
           <p>
             © {new Date().getFullYear()} {general.businessName}
           </p>

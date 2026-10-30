@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { env } from "@/lib/env";
 import { blogBlocks } from "@/lib/fitx/blog-text";
+import { breadcrumbJsonLd, jsonLd, SITE_NAME } from "@/lib/fitx/seo";
 import { coverFor, formatPostDate, publishedPost } from "../blog-data";
 
 export const dynamic = "force-dynamic";
@@ -15,14 +17,21 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await publishedPost(slug);
   if (!post) return {};
+  const description = post.seoDescription || post.excerpt || undefined;
   return {
-    title: `${post.seoTitle || post.title} | FITX Blog`,
-    description: post.seoDescription || post.excerpt || undefined,
+    title: post.seoTitle || post.title,
+    description,
+    alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
+      type: "article",
       title: post.title,
-      description: post.excerpt ?? undefined,
+      description,
+      url: `/blog/${post.slug}`,
+      publishedTime: post.publishedAt?.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
       images: [coverFor(post)],
     },
+    twitter: { card: "summary_large_image", title: post.title, description, images: [coverFor(post)] },
   };
 }
 
@@ -50,6 +59,29 @@ export default async function BlogPostPage({
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd([
+            {
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              headline: post.title,
+              description: post.excerpt ?? undefined,
+              image: new URL(coverFor(post), env.APP_URL).toString(),
+              datePublished: post.publishedAt?.toISOString(),
+              dateModified: post.updatedAt.toISOString(),
+              mainEntityOfPage: new URL(`/blog/${post.slug}`, env.APP_URL).toString(),
+              author: { "@type": "Organization", name: SITE_NAME, url: env.APP_URL },
+              publisher: { "@id": new URL("/#gym", env.APP_URL).toString() },
+            },
+            breadcrumbJsonLd(env.APP_URL, [
+              { name: "Blog", path: "/blog" },
+              { name: post.title, path: `/blog/${post.slug}` },
+            ]),
+          ]),
+        }}
+      />
       <article>
         <section className="relative overflow-hidden bg-ink py-24 sm:py-32">
           <div aria-hidden="true" className="bg-arena absolute inset-0" />

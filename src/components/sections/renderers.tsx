@@ -533,7 +533,7 @@ async function ColumnsWrapper({
             ? ((block as Record<string, unknown>).isVisible as boolean)
             : true,
       }));
-      const rendered = await renderSections(blocks);
+      const rendered = await renderSections(blocks, false);
       return (
         <div
           key={pickStr(column, "key") || undefined}
@@ -648,9 +648,12 @@ async function SplitContent({
 async function RichText({
   content,
   style,
+  headingAs = "h2",
 }: {
   content: Record<string, unknown>;
   style?: Record<string, unknown>;
+  /** "h1" when this is the first section on the page (its main heading). */
+  headingAs?: "h1" | "h2";
 }) {
   const align = pickStr(content, "align", "left") as "left" | "center";
   const paragraphs = pickArr(content, "paragraphs").map((paragraph) =>
@@ -663,6 +666,7 @@ async function RichText({
         heading={pickStr(content, "heading")}
         slash={pickBool(content, "showAccentSlash", true)}
         align={align}
+        as={headingAs}
       />
       <div
         className={`mt-6 space-y-4 leading-relaxed text-muted ${
@@ -1756,6 +1760,7 @@ async function ContactInfoSection({
 
 async function renderSection(
   section: RenderableSection,
+  first = false,
 ): Promise<ReactNode | null> {
   if (!section.isVisible) return null;
   const meta = sectionMetaFor(section.type);
@@ -1773,7 +1778,7 @@ async function renderSection(
     case "split-content":
       return <SplitContent {...props} />;
     case "rich-text":
-      return <RichText {...props} />;
+      return <RichText {...props} headingAs={first ? "h1" : "h2"} />;
     case "services-grid":
       return <ServicesGrid {...props} />;
     case "trainers-grid":
@@ -1960,11 +1965,13 @@ async function Gallery({
  */
 export async function renderSections(
   sections: RenderableSection[],
+  /** Whether these sections start the page (the first heading becomes its h1). */
+  startsPage = true,
 ): Promise<ReactNode[]> {
   const nodes: ReactNode[] = [];
   for (let index = 0; index < sections.length; index += 1) {
     const section = sections[index];
-    const node = await renderSection(section);
+    const node = await renderSection(section, startsPage && index === 0);
     if (node !== null) {
       nodes.push(
         <Fragment key={section.id ?? `${section.type}-${index}`}>

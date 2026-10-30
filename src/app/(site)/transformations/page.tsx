@@ -2,13 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { TransformationsGallery } from "@/components/site/transformations-gallery";
+import { seoMetadata } from "@/lib/fitx/seo";
 import { featuredTransformations, transformations } from "@/lib/fitx/transformations";
 
-export const metadata: Metadata = {
-  title: "Transformations",
-  description:
-    "Real before-and-after results from FITX Personal Fitness Training Studio clients in Sahiwal.",
-};
+export const metadata: Metadata = seoMetadata("/transformations");
 
 /** Before/after gallery: Client of the Month features, then every result. */
 export default function TransformationsPage() {

@@ -45,8 +45,9 @@ export function Chapters({ content }: { content: FilmContent }) {
         <HeroSlides />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-10 px-5 pb-24 sm:px-10 md:flex-row md:items-end md:justify-between md:pb-14">
           <div>
-            <Tag index={0}>Sahiwal · Punjab</Tag>
+            <Tag index={0}>Personal training gym · Sahiwal</Tag>
             <h1 className="film-display mt-5 type-hero">
+              <span className="sr-only">FITX – personal training gym in Sahiwal: </span>
               <span className="block" data-scramble>
                 The most
               </span>

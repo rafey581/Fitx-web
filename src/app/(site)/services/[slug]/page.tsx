@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { mediaUrl } from "@/lib/media-url";
+import { SHARE_IMAGE } from "@/lib/fitx/seo";
 import { serializeJsonLd } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/site/settings";
 import { defaultContent, fallbackServiceImages } from "@/components/experience/content";
@@ -35,8 +36,19 @@ export async function generateMetadata({
   if (!service || !service.isPublished) return {};
   const title = service.seoTitle || service.title;
   const description =
-    service.seoDescription || service.shortDescription || undefined;
-  return { title, description, openGraph: { title, description } };
+    service.seoDescription ||
+    `${service.shortDescription ? `${service.shortDescription} ` : ""}${service.title} at FITX Personal Fitness Training Studio, Shadman Town, Sahiwal. Book a free consultation.`;
+  return {
+    title: `${title} in Sahiwal`,
+    description,
+    alternates: { canonical: `/services/${slug}` },
+    openGraph: {
+      title: `${title} in Sahiwal | FITX`,
+      description,
+      url: `/services/${slug}`,
+      images: [{ url: SHARE_IMAGE, width: 1200, height: 630 }],
+    },
+  };
 }
 
 export default async function ServiceDetailPage({

@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { seoMetadata } from "@/lib/fitx/seo";
 import { coverFor, formatPostDate, publishedPosts } from "./blog-data";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Blog | FITX Personal Fitness Training Studio",
-  description: "Fitness tips, workout guides, nutrition advice and gym insights from FITX Sahiwal.",
-};
+export const metadata: Metadata = seoMetadata("/blog");
 
 export default async function BlogPage() {
   const posts = await publishedPosts();

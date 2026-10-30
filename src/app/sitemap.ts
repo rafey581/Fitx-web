@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
+import { landingPages } from "@/lib/fitx/landing";
 
 /**
  * sitemap.xml (Phase 5): dynamic per request. Lists every published CMS page,
@@ -16,7 +17,7 @@ function absoluteUrl(path: string): string {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [pages, services, trainers] = await Promise.all([
+  const [pages, services, trainers, posts] = await Promise.all([
     prisma.page.findMany({
       where: { deletedAt: null, status: "PUBLISHED" },
       select: { slug: true, isHome: true, noindex: true, updatedAt: true },
@@ -29,6 +30,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
     prisma.trainer.findMany({
       where: { isPublished: true },
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
       select: { slug: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
     }),
@@ -65,8 +71,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Code-defined pages (not in the CMS page table).
-  for (const path of ["/transformations", "/blog"]) {
+  for (const path of ["/transformations", "/blog", "/faq"]) {
     entries.push({ url: absoluteUrl(path), changeFrequency: "monthly", priority: 0.7 });
+  }
+
+  // Local landing pages ("gym in Sahiwal", …): high priority for search.
+  for (const page of landingPages) {
+    entries.push({ url: absoluteUrl(page.path), changeFrequency: "monthly", priority: 0.9 });
+  }
+
+  for (const post of posts) {
+    entries.push({
+      url: absoluteUrl(`/blog/${post.slug}`),
+      lastModified: post.updatedAt,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    });
   }
 
   return entries;

@@ -7,7 +7,9 @@ import Script from "next/script";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/db";
 import { mediaUrl } from "@/lib/media-url";
-import { getSiteSettings, seoDefaults } from "@/lib/site/settings";
+import { studio } from "@/lib/fitx/knowledge";
+import { pageSeo, SHARE_IMAGE, SITE_NAME } from "@/lib/fitx/seo";
+import { getSiteSettings } from "@/lib/site/settings";
 import { themeToCss } from "@/lib/theme/tokens";
 
 import "./globals.css";
@@ -32,17 +34,16 @@ const serifFont = Playfair_Display({
 });
 
 /**
- * Site-wide SEO defaults (Phase 5) now come from Settings → SEO so the owner
- * can change the default title, description and OpenGraph image without code.
- * Per-page metadata (from page `seo_*` fields or module rows) still overrides
- * these defaults, and `metadataBase` keeps relative OG images absolute.
+ * Site-wide SEO defaults. Copy lives in src/lib/fitx/seo.ts (local search
+ * terms, written from the studio's knowledge base); pages override the title,
+ * description and canonical URL with `seoMetadata(path)`. An OpenGraph image
+ * chosen in Settings → SEO still replaces the default share card.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const seo = settings.seo;
-  const defaultTitle = seo.defaultTitle || seoDefaults.defaultTitle;
 
-  let ogImage: string | undefined;
+  let ogImage = SHARE_IMAGE;
   if (seo.ogImageId) {
     const media = await prisma.media.findUnique({
       where: { id: seo.ogImageId },
@@ -50,18 +51,27 @@ export async function generateMetadata(): Promise<Metadata> {
     });
     if (media) ogImage = new URL(mediaUrl({ path: media.path }), env.APP_URL).toString();
   }
+  const home = pageSeo["/"];
 
   return {
     metadataBase: new URL(env.APP_URL),
-    title: {
-      default: defaultTitle,
-      template: "%s | FITX",
-    },
-    description: seo.defaultDescription?.trim() || undefined,
+    title: { default: home.title, template: "%s | FITX" },
+    description: home.description,
+    applicationName: SITE_NAME,
+    category: "fitness",
+    formatDetection: { telephone: true, address: true },
     openGraph: {
       type: "website",
-      siteName: defaultTitle,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+      siteName: SITE_NAME,
+      locale: "en_PK",
+      images: [{ url: ogImage, width: 1200, height: 630, alt: "FITX Personal Fitness Training Studio, Sahiwal" }],
+    },
+    twitter: { card: "summary_large_image", images: [ogImage] },
+    other: {
+      "geo.region": "PK-PB",
+      "geo.placename": "Sahiwal",
+      "geo.position": `${studio.geo.latitude};${studio.geo.longitude}`,
+      ICBM: `${studio.geo.latitude}, ${studio.geo.longitude}`,
     },
   };
 }

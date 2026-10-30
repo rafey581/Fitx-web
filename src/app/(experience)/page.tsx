@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
+
 import { Experience } from "@/components/experience/Experience";
+import { seoMetadata } from "@/lib/fitx/seo";
 import { getFilmContent } from "@/lib/site/film";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = seoMetadata("/");
 
 /**
  * Home: a single scroll-driven 3D film (origin → forge → programs → studio →
