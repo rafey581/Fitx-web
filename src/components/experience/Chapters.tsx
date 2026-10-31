@@ -287,6 +287,12 @@ export function Chapters({ content }: { content: FilmContent }) {
               </a>
             ) : null}
           </div>
+          <p className="film-mono mt-8 text-[11px] text-white/55">
+            Designed &amp; developed by{" "}
+            <a href="https://rafey.me" target="_blank" rel="noopener" className="text-white/85 underline-offset-4 hover:text-accent hover:underline">
+              Xast Solutions
+            </a>
+          </p>
         </div>
         <footer className="absolute inset-x-5 bottom-16 hidden gap-6 text-sm text-white/80 sm:left-10 sm:right-28 md:grid md:grid-cols-4">
           <p>

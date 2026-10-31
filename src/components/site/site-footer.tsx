@@ -172,9 +172,16 @@ export async function SiteFooter() {
           </Link>
         </nav>
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-sm text-white/60">
+        {/* Bottom padding keeps this row clear of the floating WhatsApp/chat buttons. */}
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 pb-40 text-sm text-white/60 sm:pb-24">
           <p>
             © {new Date().getFullYear()} {general.businessName}
+          </p>
+          <p>
+            Designed &amp; developed by{" "}
+            <a href="https://rafey.me" target="_blank" rel="noopener" className="footer-link text-white/85">
+              Xast Solutions
+            </a>
           </p>
           <Link href="/admin" className="footer-link text-sm">
             Staff login
