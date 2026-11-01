@@ -6,12 +6,13 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-/** Admin home: the two things the studio manages, with one-click actions. */
+/** Admin home: what the studio manages (testimonials, blog, gallery), with one-click actions. */
 export default async function AdminHomePage() {
   const user = await requireUser();
-  const [testimonials, posts] = await Promise.all([
+  const [testimonials, posts, photos] = await Promise.all([
     prisma.testimonial.count({ where: { isPublished: true } }),
     prisma.blogPost.count({ where: { status: "PUBLISHED" } }),
+    prisma.galleryItem.count({ where: { isPublished: true } }),
   ]);
 
   const sections = [
@@ -33,6 +34,15 @@ export default async function AdminHomePage() {
       addLabel: "Write a post",
       view: "/blog",
     },
+    {
+      title: "Gallery",
+      count: `${photos} photos`,
+      text: "Upload photos of the studio, training and events, or change their captions and categories.",
+      list: "/admin/gallery",
+      add: "/admin/gallery",
+      addLabel: "Upload photos",
+      view: "/gallery",
+    },
   ];
 
   return (
@@ -42,7 +52,7 @@ export default async function AdminHomePage() {
         <p className="mt-1 text-sm text-muted">What would you like to update on the FITX website?</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {sections.map((s) => (
           <section key={s.title} className={`${cardClass} flex flex-col`}>
             <div className="flex items-baseline justify-between gap-3">

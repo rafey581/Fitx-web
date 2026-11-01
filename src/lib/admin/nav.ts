@@ -11,7 +11,7 @@ export type AdminNavItem = {
 };
 
 /**
- * The simple admin: the studio only manages testimonials and blog posts.
+ * The simple admin: the studio manages testimonials, blog posts and gallery photos.
  *
  * The other sections (pages, media, trainers, menus, theme, settings, users…)
  * still exist in the code but are hidden, and src/proxy.ts sends their
@@ -22,10 +22,11 @@ export const adminNav: AdminNavItem[] = [
   { label: "Home", href: "/admin", permission: null, group: "Overview", implemented: true },
   { label: "Testimonials", href: "/admin/testimonials", permission: "content:write", group: "Content", implemented: true },
   { label: "Blog", href: "/admin/blog", permission: "content:write", group: "Content", implemented: true },
+  { label: "Gallery", href: "/admin/gallery", permission: "content:write", group: "Content", implemented: true },
 ];
 
 /** Admin addresses reachable in the simple admin (besides sign-in screens). */
-export const SIMPLE_ADMIN_PATHS = ["/admin", "/admin/testimonials", "/admin/blog", "/admin/forbidden"];
+export const SIMPLE_ADMIN_PATHS = ["/admin", "/admin/testimonials", "/admin/blog", "/admin/gallery", "/admin/forbidden"];
 
 export const ADMIN_NAV_GROUPS = [
   "Overview",

@@ -1,5 +1,7 @@
 /**
- * The studio's photo gallery (Gallery page). Grouped for the page's filter
+ * The studio's original photo gallery. `npm run db:sync-knowledge` imports it
+ * once into the gallery table, where Admin → Gallery manages it; this list is
+ * only shown directly while that table is empty. Grouped for the page's filter
  * tabs; listed in the order shown under "All". Sizes keep the grid steady
  * while photos load.
  */
@@ -9,8 +11,9 @@ export type GalleryPhoto = {
   src: string;
   alt: string;
   category: GalleryCategory;
-  width: number;
-  height: number;
+  /** Known for built-in and uploaded photos; keeps the grid steady while loading. */
+  width?: number;
+  height?: number;
 };
 
 export const galleryCategories: { id: GalleryCategory; label: string }[] = [

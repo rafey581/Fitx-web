@@ -14,6 +14,7 @@ import "dotenv/config";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 import { coaches, fees, owners, studio } from "../src/lib/fitx/knowledge";
+import { galleryPhotos } from "../src/lib/fitx/gallery";
 import { legacyPosts } from "../src/lib/fitx/legacy-blog";
 import { googleReviews } from "../src/lib/fitx/reviews";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -333,6 +334,27 @@ async function syncLegacyBlog() {
   console.info(existing === 0 ? `• Blog: imported ${legacyPosts.length} original posts` : "• Blog: posts already present");
 }
 
+/** Imports the original gallery once; afterwards Admin → Gallery manages it. */
+async function syncGallery() {
+  if (await importDone("galleryPhotos")) return console.info("• Gallery: original photos already imported");
+  const present = await prisma.galleryItem.count({ where: { externalUrl: { in: galleryPhotos.map((p) => p.src) } } });
+  if (present === 0) {
+    const last = await prisma.galleryItem.findFirst({ orderBy: { sortOrder: "desc" }, select: { sortOrder: true } });
+    const start = (last?.sortOrder ?? 0) + 1;
+    await prisma.galleryItem.createMany({
+      data: galleryPhotos.map((photo, index) => ({
+        externalUrl: photo.src,
+        category: photo.category,
+        caption: photo.alt,
+        sortOrder: start + index,
+        isPublished: true,
+      })),
+    });
+  }
+  await markImported("galleryPhotos");
+  console.info(present === 0 ? `• Gallery: imported ${galleryPhotos.length} photos` : "• Gallery: photos already present");
+}
+
 async function main() {
   console.info("Syncing FITX knowledge base into the database…");
   await syncSettings();
@@ -342,6 +364,7 @@ async function main() {
   await syncTestimonials();
   await syncGoogleReviews();
   await syncLegacyBlog();
+  await syncGallery();
   console.info("Done.");
 }
 
