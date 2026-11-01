@@ -23,10 +23,11 @@ export const adminNav: AdminNavItem[] = [
   { label: "Testimonials", href: "/admin/testimonials", permission: "content:write", group: "Content", implemented: true },
   { label: "Blog", href: "/admin/blog", permission: "content:write", group: "Content", implemented: true },
   { label: "Gallery", href: "/admin/gallery", permission: "content:write", group: "Content", implemented: true },
+  { label: "Chats", href: "/admin/chats", permission: "content:write", group: "Content", implemented: true },
 ];
 
 /** Admin addresses reachable in the simple admin (besides sign-in screens). */
-export const SIMPLE_ADMIN_PATHS = ["/admin", "/admin/testimonials", "/admin/blog", "/admin/gallery", "/admin/forbidden"];
+export const SIMPLE_ADMIN_PATHS = ["/admin", "/admin/testimonials", "/admin/blog", "/admin/gallery", "/admin/chats", "/admin/forbidden"];
 
 export const ADMIN_NAV_GROUPS = [
   "Overview",

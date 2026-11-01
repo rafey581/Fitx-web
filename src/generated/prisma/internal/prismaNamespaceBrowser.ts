@@ -68,7 +68,9 @@ export const ModelName = {
   Setting: 'Setting',
   Lead: 'Lead',
   Redirect: 'Redirect',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  ChatConversation: 'ChatConversation',
+  ChatMessage: 'ChatMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -395,6 +397,32 @@ export const AuditLogScalarFieldEnum = {
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
+export const ChatConversationScalarFieldEnum = {
+  id: 'id',
+  page: 'page',
+  device: 'device',
+  messageCount: 'messageCount',
+  unanswered: 'unanswered',
+  startedAt: 'startedAt',
+  lastMessageAt: 'lastMessageAt'
+} as const
+
+export type ChatConversationScalarFieldEnum = (typeof ChatConversationScalarFieldEnum)[keyof typeof ChatConversationScalarFieldEnum]
+
+
+export const ChatMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  role: 'role',
+  content: 'content',
+  source: 'source',
+  cards: 'cards',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatMessageScalarFieldEnum = (typeof ChatMessageScalarFieldEnum)[keyof typeof ChatMessageScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -653,4 +681,25 @@ export const AuditLogOrderByRelevanceFieldEnum = {
 } as const
 
 export type AuditLogOrderByRelevanceFieldEnum = (typeof AuditLogOrderByRelevanceFieldEnum)[keyof typeof AuditLogOrderByRelevanceFieldEnum]
+
+
+export const ChatConversationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  page: 'page',
+  device: 'device'
+} as const
+
+export type ChatConversationOrderByRelevanceFieldEnum = (typeof ChatConversationOrderByRelevanceFieldEnum)[keyof typeof ChatConversationOrderByRelevanceFieldEnum]
+
+
+export const ChatMessageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  role: 'role',
+  content: 'content',
+  source: 'source',
+  cards: 'cards'
+} as const
+
+export type ChatMessageOrderByRelevanceFieldEnum = (typeof ChatMessageOrderByRelevanceFieldEnum)[keyof typeof ChatMessageOrderByRelevanceFieldEnum]
 

@@ -85,6 +85,15 @@ function score(faq: Faq, text: string, words: string[]) {
   return total;
 }
 
+/** How the bot (AI or offline) says it doesn't know something. */
+const UNSURE =
+  /(do not|don['’]t) have (any |the |that |those |specific |exact |more )?(details?|information|info)|not sure|no (details?|information) (on|about)|(isn['’]t|is not|aren['’]t|are not|not) (listed|mentioned|available on (the|our) website)|(can['’]t|cannot|unable to) (confirm|say|answer)|team can confirm|(for|regarding) (more )?(details|information) (on|about|regarding)\b[^.]{0,80}(call|contact|reach out|whatsapp)|reach out to (our|the) team|(call|contact) (our|the) team directly/i;
+
+/** True when a reply is the bot saying it doesn't know (worth a look in Admin → Chats). */
+export function isUnanswered(reply: string): boolean {
+  return reply === fallbackAnswer || UNSURE.test(reply);
+}
+
 export const fallbackAnswer = `I don't have that detail yet — the FITX team can help. Call ${studio.phones.join(" or ")}, or send a message from the Contact page.`;
 
 function rank(text: string) {

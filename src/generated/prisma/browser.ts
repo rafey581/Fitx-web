@@ -107,3 +107,13 @@ export type Redirect = Prisma.RedirectModel
  * 
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model ChatConversation
+ * 
+ */
+export type ChatConversation = Prisma.ChatConversationModel
+/**
+ * Model ChatMessage
+ * 
+ */
+export type ChatMessage = Prisma.ChatMessageModel

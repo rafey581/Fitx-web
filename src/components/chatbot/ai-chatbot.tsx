@@ -37,6 +37,20 @@ function linkify(text: string): ReactNode[] {
   });
 }
 
+/** One id per browser tab, so a visitor's messages group into one conversation in the admin. */
+function conversationId(): string {
+  const key = "fitx-chat-id";
+  try {
+    const existing = sessionStorage.getItem(key);
+    if (existing) return existing;
+    const id = crypto.randomUUID();
+    sessionStorage.setItem(key, id);
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
 export function AIChatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([GREETING]);
@@ -86,7 +100,11 @@ export function AIChatbot() {
         headers: { "Content-Type": "application/json" },
         // The greeting is UI chrome, not part of the conversation.
         // Only text goes back to the server; cards are display-only.
-        body: JSON.stringify({ messages: next.slice(1).map(({ role, content }) => ({ role, content })) }),
+        body: JSON.stringify({
+          messages: next.slice(1).map(({ role, content }) => ({ role, content })),
+          conversationId: conversationId(),
+          page: window.location.pathname,
+        }),
       });
       const data = (await res.json()) as { reply?: string; cards?: "fees" };
       reply = data.reply ? { role: "assistant", content: data.reply, cards: data.cards } : fallback();
@@ -215,7 +233,8 @@ export function AIChatbot() {
             </button>
           </form>
           <p className="px-4 pb-3 text-[10px] leading-snug text-white/35">
-            Answers come from FITX&apos;s published information. Body-composition readings are estimates, not medical advice.
+            Answers come from FITX&apos;s published information; body-composition readings are estimates, not medical
+            advice. Chats are saved so the FITX team can improve its answers.
           </p>
         </section>
       ) : null}

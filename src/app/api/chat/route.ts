@@ -2,8 +2,9 @@ import Anthropic from "@anthropic-ai/sdk";
 
 import { prisma } from "@/lib/db";
 import { asksAboutFees, localAnswer } from "@/lib/fitx/answer";
+import { logChatTurn, validConversationId } from "@/lib/fitx/chat-log";
 import { askGemini, geminiEnabled } from "@/lib/fitx/gemini";
-import { systemPrompt, type SiteContext } from "@/lib/fitx/knowledge";
+import { systemPrompt, UNKNOWN_TAG, type SiteContext } from "@/lib/fitx/knowledge";
 
 /**
  * Website chatbot endpoint.
@@ -113,14 +114,34 @@ export async function POST(request: Request) {
   const userTurns = messages.filter((m) => m.role === "user").map((m) => String(m.content));
   const previous = userTurns.length > 1 ? userTurns[userTurns.length - 2] : undefined;
   const cards = asksAboutFees(question, previous) ? ("fees" as const) : undefined;
+
+  // Each reply is also saved for Admin → Chats (when the widget sent a conversation id).
+  const raw = body as { conversationId?: unknown; page?: unknown };
+  const conversationId = validConversationId(raw.conversationId) ? raw.conversationId : null;
+  const page = typeof raw.page === "string" && raw.page.startsWith("/") ? raw.page.slice(0, 255) : null;
+  const send = async (data: { reply: string; cards?: "fees"; source: string }, status = 200) => {
+    // The AI tags replies the knowledge base couldn't answer; strip the tag, keep the flag.
+    const unknown = data.reply.includes(UNKNOWN_TAG);
+    if (unknown) data = { ...data, reply: data.reply.replaceAll(UNKNOWN_TAG, "").trim() };
+    if (conversationId) {
+      await logChatTurn({
+        conversationId,
+        page,
+        userAgent: request.headers.get("user-agent"),
+        question,
+        reply: data.reply,
+        source: data.source,
+        cards: data.cards,
+        unknown,
+      });
+    }
+    return Response.json(data, { status });
+  };
   const offline = () =>
-    Response.json({ reply: localAnswer(question, previous, { feeCards: !!cards }), cards, source: "approved" });
+    send({ reply: localAnswer(question, previous, { feeCards: !!cards }), cards, source: "approved" });
 
   if (limited(ip)) {
-    return Response.json(
-      { reply: "You're sending messages quickly — please wait a moment and try again.", source: "limit" },
-      { status: 429 },
-    );
+    return send({ reply: "You're sending messages quickly — please wait a moment and try again.", source: "limit" }, 429);
   }
 
   const SYSTEM = (await getSystem()) + (cards ? FEE_CARDS_NOTE : "");
@@ -130,7 +151,7 @@ export async function POST(request: Request) {
       SYSTEM,
       messages.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content) })),
     );
-    if (reply) return Response.json({ reply, cards, source: "ai" });
+    if (reply) return send({ reply, cards, source: "ai" });
   }
 
   const anthropic = getClient();
@@ -153,7 +174,7 @@ export async function POST(request: Request) {
       .join("")
       .trim();
     if (!reply) return offline();
-    return Response.json({ reply, cards, source: "ai" });
+    return send({ reply, cards, source: "ai" });
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {
       console.error("[chat] Anthropic API key rejected; using approved answers.");

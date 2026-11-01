@@ -301,3 +301,17 @@ export async function deleteGalleryPhotoAction(formData: FormData): Promise<void
   refreshSite("/admin/gallery");
   redirect("/admin/gallery?deleted=1");
 }
+
+// ---------------------------------------------------------------------------
+// Chatbot conversations
+
+export async function deleteChatAction(formData: FormData): Promise<void> {
+  const actor = await assertPermission("content:write");
+  const id = String(formData.get("id") ?? "");
+  const deleted = await prisma.chatConversation.deleteMany({ where: { id } });
+  if (deleted.count) {
+    await recordAudit({ userId: actor.id, action: "chat.deleted", entity: "chat_conversation", entityId: id });
+  }
+  revalidatePath("/admin/chats");
+  redirect("/admin/chats?deleted=1");
+}
