@@ -27,6 +27,7 @@ import { reviewPhoto } from "@/lib/fitx/reviews";
 import { ReviewWall } from "@/components/site/review-wall";
 import { PhotoGallery } from "@/components/site/photo-gallery";
 import { galleryPhotos } from "@/lib/fitx/gallery";
+import { websiteGallery } from "@/lib/fitx/gallery-data";
 import { LeadForm } from "@/components/site/lead-form";
 import { Home3DHero } from "@/components/site/Home3DHero";
 
@@ -1845,6 +1846,23 @@ async function Gallery({
       caption: row.caption ?? "",
       href: safeHref(row.externalUrl ?? "") ?? null,
     }));
+
+  // The studio's gallery (managed in Admin → Gallery) with filters and a viewer.
+  // Hand-picked selections from the old page builder keep the grid below.
+  if (source !== "selection" && handPicked.length === 0) {
+    return (
+      <SectionShell style={style}>
+        <Heading
+          eyebrow={pickStr(content, "eyebrow")}
+          heading={pickStr(content, "heading")}
+          slash={pickBool(content, "showAccentSlash", true)}
+        />
+        <div className="mt-8">
+          <PhotoGallery photos={await websiteGallery()} />
+        </div>
+      </SectionShell>
+    );
+  }
 
   let cells: Cell[] = [];
 

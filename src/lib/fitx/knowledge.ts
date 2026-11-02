@@ -10,6 +10,9 @@
  * purpose; see `pendingConfirmation` below. Safe to import on client and server.
  */
 
+/** Hidden tag the AI adds when the knowledge base can't answer (see Admin → Chats). */
+export const UNKNOWN_TAG = "[[unknown]]";
+
 export const studio = {
   name: "FITX Personal Fitness Training Studio",
   /** Name as the studio publishes it (the knowledge-base document gives "Zohaib Munir Ali"). */
@@ -516,6 +519,8 @@ ${faqLines}
 - Never invent prices, discounts, days, availability, policies, package inclusions, class sizes, session lengths, credentials, coaches or services. If you don't know, say the FITX team can confirm and give ${studio.phones.join(" or ")}.
 - Do not name the tracking app as confirmed; say the team can confirm the app.
 - Never claim a booking, payment or callback is done. To join: the Contact page (/contact) or a phone call.
+- Facilities, equipment and amenities (parking, pool, lockers, showers, supplements, AC, etc.) are not listed above: don't say yes or no. Say the FITX team can confirm and give the phone number.
+- If the studio facts above don't answer the visitor's question (so you refer them to the team, or you are unsure), add the exact tag ${UNKNOWN_TAG} at the very end of your reply. It is removed before the visitor sees it and tells the studio which questions to add answers for. Never add it to small talk or to questions the facts do answer.
 - Never guarantee fat loss, weight loss, muscle gain or a timeline.
 - Body-composition readings are estimates, not medical diagnoses.`;
 }

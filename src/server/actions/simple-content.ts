@@ -21,12 +21,17 @@ import type { ActionState } from "./types";
 const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 /** Folders whose files belong to one testimonial / post and go when it does. */
-const OWN_FOLDERS = new Set(["testimonials", "blog"]);
+const OWN_FOLDERS = new Set(["testimonials", "blog", "gallery"]);
 
 /** Stores the form's picture, if one was chosen. Returns its media id. */
 async function storePicture(formData: FormData, folder: string, userId: string): Promise<string | null> {
   const file = formData.get("photo");
   if (!(file instanceof File) || file.size === 0) return null;
+  return storeFile(file, folder, userId);
+}
+
+/** Validates and stores one uploaded picture. Returns its media id. */
+async function storeFile(file: File, folder: string, userId: string): Promise<string> {
   if (!PHOTO_TYPES.has(file.type)) {
     throw new MediaValidationError("Please choose a JPG, PNG or WebP picture.");
   }
@@ -203,4 +208,110 @@ export async function deleteBlogPostAction(formData: FormData): Promise<void> {
   }
   refreshSite("/admin/blog");
   redirect("/admin/blog?deleted=1");
+}
+
+// ---------------------------------------------------------------------------
+// Gallery photos
+
+const GALLERY_CATEGORIES = ["studio", "training", "events"] as const;
+const categorySchema = z.enum(GALLERY_CATEGORIES, { message: "Please choose a category." });
+const captionSchema = z.string().trim().max(200, "Keep the caption under 200 characters.");
+
+/** Uploads one or more photos into a gallery category (newest shown first). */
+export async function uploadGalleryPhotosAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const actor = await assertPermission("content:write");
+  const category = categorySchema.safeParse(formData.get("category"));
+  if (!category.success) return { ok: false, fieldErrors: { category: ["Please choose a category."] } };
+  const files = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) return { ok: false, fieldErrors: { photos: ["Please choose at least one photo."] } };
+
+  const first = await prisma.galleryItem.findFirst({ orderBy: { sortOrder: "asc" }, select: { sortOrder: true } });
+  let sortOrder = (first?.sortOrder ?? 1) - files.length;
+  const failed: string[] = [];
+  let added = 0;
+  for (const file of files) {
+    try {
+      const mediaId = await storeFile(file, "gallery", actor.id);
+      await prisma.galleryItem.create({
+        data: { mediaId, category: category.data, caption: null, sortOrder: sortOrder++, isPublished: true },
+      });
+      added += 1;
+    } catch (error) {
+      failed.push(error instanceof MediaValidationError ? `${file.name}: ${error.message}` : `${file.name}: could not be saved.`);
+    }
+  }
+
+  await recordAudit({ userId: actor.id, action: "gallery.uploaded", entity: "gallery_item", meta: { added, category: category.data } });
+  refreshSite("/admin/gallery");
+  if (failed.length) {
+    return { ok: added > 0, message: added ? `Added ${added} photo${added === 1 ? "" : "s"}.` : undefined, error: failed.join(" ") };
+  }
+  redirect(`/admin/gallery?added=${added}`);
+}
+
+/** Edits one gallery photo: caption, category, or a replacement picture. */
+export async function saveGalleryPhotoAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const actor = await assertPermission("content:write");
+  const id = String(formData.get("id") ?? "");
+  const existing = await prisma.galleryItem.findUnique({ where: { id } });
+  if (!existing) return { ok: false, error: "This photo no longer exists." };
+  const category = categorySchema.safeParse(formData.get("category"));
+  const caption = captionSchema.safeParse(formData.get("caption") ?? "");
+  if (!category.success || !caption.success) {
+    return {
+      ok: false,
+      fieldErrors: {
+        ...(category.success ? {} : { category: ["Please choose a category."] }),
+        ...(caption.success ? {} : { caption: caption.error.issues.map((i) => i.message) }),
+      },
+    };
+  }
+
+  let mediaId: string | null;
+  try {
+    mediaId = await storePicture(formData, "gallery", actor.id);
+  } catch (error) {
+    return { ok: false, fieldErrors: { photo: [error instanceof MediaValidationError ? error.message : "Could not save the picture."] } };
+  }
+  await prisma.galleryItem.update({
+    where: { id },
+    data: {
+      category: category.data,
+      caption: caption.data || null,
+      // A new picture replaces the old one (uploaded or built-in).
+      ...(mediaId ? { mediaId, externalUrl: null } : {}),
+    },
+  });
+  if (mediaId) await removePicture(existing.mediaId);
+
+  await recordAudit({ userId: actor.id, action: "gallery.updated", entity: "gallery_item", entityId: id });
+  refreshSite("/admin/gallery");
+  redirect("/admin/gallery?saved=1");
+}
+
+export async function deleteGalleryPhotoAction(formData: FormData): Promise<void> {
+  const actor = await assertPermission("content:write");
+  const id = String(formData.get("id") ?? "");
+  const existing = await prisma.galleryItem.findUnique({ where: { id } });
+  if (existing) {
+    await prisma.galleryItem.delete({ where: { id } });
+    await removePicture(existing.mediaId);
+    await recordAudit({ userId: actor.id, action: "gallery.deleted", entity: "gallery_item", entityId: id });
+  }
+  refreshSite("/admin/gallery");
+  redirect("/admin/gallery?deleted=1");
+}
+
+// ---------------------------------------------------------------------------
+// Chatbot conversations
+
+export async function deleteChatAction(formData: FormData): Promise<void> {
+  const actor = await assertPermission("content:write");
+  const id = String(formData.get("id") ?? "");
+  const deleted = await prisma.chatConversation.deleteMany({ where: { id } });
+  if (deleted.count) {
+    await recordAudit({ userId: actor.id, action: "chat.deleted", entity: "chat_conversation", entityId: id });
+  }
+  revalidatePath("/admin/chats");
+  redirect("/admin/chats?deleted=1");
 }
