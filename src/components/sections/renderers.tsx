@@ -1827,7 +1827,10 @@ async function Gallery({
 
   type Cell = {
     key: string;
+    /** Media row for the photo; empty when the photo is a plain URL. */
     imageId: string;
+    /** Photo stored as a URL (the studio's own set) rather than as media. */
+    photoUrl: string | null;
     caption: string;
     href: string | null;
   };
@@ -1843,8 +1846,11 @@ async function Gallery({
     rows.map((row) => ({
       key: row.id,
       imageId: row.mediaId ?? "",
+      // Gallery items mostly store the photo itself in `externalUrl` (the
+      // studio's files under /images); drawing only `mediaId` left them blank.
+      photoUrl: row.externalUrl ?? null,
       caption: row.caption ?? "",
-      href: safeHref(row.externalUrl ?? "") ?? null,
+      href: null,
     }));
 
   // The studio's gallery (managed in Admin → Gallery) with filters and a viewer.
@@ -1887,9 +1893,13 @@ async function Gallery({
     // Hand-picked images stored on the section (legacy representation).
     cells = handPicked.map((raw, index) => {
       const item = raw as Record<string, unknown>;
+      const image = pickStr(item, "image");
+      // Older sections saved a URL here instead of a media id.
+      const isUrl = /^(https?:)?\//i.test(image);
       return {
         key: `image-${index}`,
-        imageId: pickStr(item, "image"),
+        imageId: isUrl ? "" : image,
+        photoUrl: isUrl ? image : null,
         caption: pickStr(item, "caption"),
         href: safeHref(pickStr(item, "link")),
       };
@@ -1904,8 +1914,20 @@ async function Gallery({
     cells = fromModule(rows);
   }
 
-  if (cells.length === 0) {
-    // Nothing in the gallery module: the studio's own photo set, with filters and a viewer.
+  // Resolve each photo to a URL: its media file when there is one, otherwise
+  // the URL the item stores. Items without either are skipped.
+  const resolved = await Promise.all(
+    cells.map(async (cell) => {
+      const media = cell.imageId ? await getMedia(cell.imageId) : null;
+      return { cell, src: media ? mediaSrc(media, 1600).src : cell.photoUrl };
+    }),
+  );
+  const withPhotos = resolved.filter((entry): entry is { cell: Cell; src: string } =>
+    Boolean(entry.src),
+  );
+
+  if (withPhotos.length === 0) {
+    // Nothing usable in the gallery module: the studio's own photo set, with filters and a viewer.
     return (
       <SectionShell style={style}>
         <Heading
@@ -1920,39 +1942,39 @@ async function Gallery({
     );
   }
 
-  const figures = await Promise.all(
-    cells.map(async (cell) => {
-      const inner = (
-        <figure className="group relative overflow-hidden rounded-brand border border-line">
-          <SiteImage
-            id={cell.imageId}
-            alt={cell.caption}
-            className={`w-full object-cover transition duration-500 group-hover:scale-[1.05] ${
-              masonry ? "aspect-[3/4]" : "aspect-square"
-            }`}
-          />
-          {cell.caption ? (
-            <>
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/85 to-transparent"
-              />
-              <figcaption className="absolute inset-x-0 bottom-0 px-4 py-3.5 text-xs font-semibold tracking-wide text-white uppercase">
-                {cell.caption}
-              </figcaption>
-            </>
-          ) : null}
-        </figure>
-      );
-      return cell.href ? (
-        <a key={cell.key} href={cell.href} className="block">
-          {inner}
-        </a>
-      ) : (
-        <div key={cell.key}>{inner}</div>
-      );
-    }),
-  );
+  const figures = withPhotos.map(({ cell, src }) => {
+    const inner = (
+      <figure className="group relative overflow-hidden rounded-brand border border-line">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={cell.caption}
+          loading="lazy"
+          className={`w-full object-cover transition duration-500 group-hover:scale-[1.05] ${
+            masonry ? "aspect-[3/4]" : "aspect-square"
+          }`}
+        />
+        {cell.caption ? (
+          <>
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/85 to-transparent"
+            />
+            <figcaption className="absolute inset-x-0 bottom-0 px-4 py-3.5 text-xs font-semibold tracking-wide text-white uppercase">
+              {cell.caption}
+            </figcaption>
+          </>
+        ) : null}
+      </figure>
+    );
+    return cell.href ? (
+      <a key={cell.key} href={cell.href} className="block">
+        {inner}
+      </a>
+    ) : (
+      <div key={cell.key}>{inner}</div>
+    );
+  });
 
   return (
     <SectionShell style={style}>
@@ -1961,17 +1983,11 @@ async function Gallery({
         heading={pickStr(content, "heading")}
         slash={pickBool(content, "showAccentSlash", true)}
       />
-      {figures.length > 0 ? (
-        <div
-          className={`mt-10 grid gap-4 ${masonry ? "grid-cols-2 gap-4 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-3"}`}
-        >
-          {figures}
-        </div>
-      ) : (
-        <p className="mt-8 text-sm text-muted">
-          No gallery images published yet.
-        </p>
-      )}
+      <div
+        className={`mt-10 grid gap-4 ${masonry ? "grid-cols-2 gap-4 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-3"}`}
+      >
+        {figures}
+      </div>
     </SectionShell>
   );
 }
