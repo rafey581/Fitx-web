@@ -5,10 +5,14 @@ import { SITE_NAME } from "@/lib/fitx/seo";
 /** Web app manifest: name and icons when the site is added to a phone's home screen. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: SITE_NAME,
     short_name: "FITX",
     description: "Personal training gym in Shadman Town, Sahiwal.",
     start_url: "/",
+    scope: "/",
+    lang: "en-PK",
+    orientation: "portrait",
     display: "standalone",
     background_color: "#08080a",
     theme_color: "#08080a",

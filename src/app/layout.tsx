@@ -11,6 +11,7 @@ import { studio } from "@/lib/fitx/knowledge";
 import { pageSeo, SHARE_IMAGE, SITE_NAME } from "@/lib/fitx/seo";
 import { getSiteSettings } from "@/lib/site/settings";
 import { themeToCss } from "@/lib/theme/tokens";
+import { InstallPrompt } from "@/components/site/install-prompt";
 
 import "./globals.css";
 
@@ -145,6 +146,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           />
         ) : null}
         {content}
+        {/* "Add to home screen" popup on phones (hidden on admin/preview pages). */}
+        <InstallPrompt />
         {settings.scripts.bodyScripts ? (
           <script
             dangerouslySetInnerHTML={{ __html: settings.scripts.bodyScripts }}
