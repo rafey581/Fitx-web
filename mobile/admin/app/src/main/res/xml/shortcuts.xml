@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_launcher_foreground"
+        android:shortcutId="server"
+        android:shortcutShortLabel="@string/shortcut_server">
+        <intent
+            android:action="com.fitx.admin.SET_SERVER"
+            android:targetClass="com.fitx.admin.MainActivity"
+            android:targetPackage="com.fitx.admin" />
+    </shortcut>
+</shortcuts>

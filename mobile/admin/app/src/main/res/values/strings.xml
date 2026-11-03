@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FITX Admin</string>
+    <string name="shortcut_server">Server address</string>
+    <string name="error_title">Can\'t reach the studio website</string>
+    <string name="error_hint">Check your connection, then try again. To change the server address, long-press the app icon and choose “Server address”.</string>
+    <string name="error_retry">Try again</string>
+    <string name="server_title">Server address</string>
+    <string name="server_hint">The admin page to open, e.g. https://fitxfitnessstudio.com/admin</string>
+    <string name="server_save">Open</string>
+    <string name="server_cancel">Cancel</string>
+    <string name="server_bad_url">Enter a full http:// or https:// address.</string>
+</resources>
