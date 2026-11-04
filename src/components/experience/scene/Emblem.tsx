@@ -4,12 +4,13 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
+import { FitxWordmark } from "@/components/3d/FitxWordmark";
 import { film, ramp } from "../store";
 
 /**
- * The FITX logo mark rebuilt in 3D: a split chrome ring around an orange
- * dumbbell, orbited by a cloud of chrome shards. In the opening shot the
- * dumbbell lifts out and the ring opens up so the camera can fly through it.
+ * The FITX logo mark rebuilt in 3D: a split chrome ring around the extruded
+ * FITX wordmark, orbited by a cloud of chrome shards. In the opening shot the
+ * wordmark lifts out and the ring opens up so the camera can fly through it.
  */
 
 const RING_R = 2.2;
@@ -34,25 +35,6 @@ export function orangeMaterial() {
     emissive: "#ff3a00",
     emissiveIntensity: 0.45,
   });
-}
-
-function Dumbbell({ material }: { material: THREE.Material }) {
-  const bar = (y: number, length: number, radius: number) => (
-    <mesh position={[0, y, 0]} rotation={[0, 0, Math.PI / 2]} material={material}>
-      <capsuleGeometry args={[radius, length, 8, 24]} />
-    </mesh>
-  );
-  return (
-    <group>
-      <mesh material={material}>
-        <cylinderGeometry args={[0.085, 0.085, 1.25, 24]} />
-      </mesh>
-      {bar(0.56, 0.95, 0.12)}
-      {bar(0.86, 0.62, 0.105)}
-      {bar(-0.56, 0.95, 0.12)}
-      {bar(-0.86, 0.62, 0.105)}
-    </group>
-  );
 }
 
 const _dummy = new THREE.Object3D();
@@ -135,9 +117,11 @@ export function Emblem({
     ring.current.scale.setScalar(1 + open * 0.55);
 
     bell.current.position.y = lift * 5;
-    // Roll around its own length so it always reads as a horizontal dumbbell.
-    bell.current.rotation.x = t * 0.5 + lift * 3;
-    bell.current.rotation.z = lift * 0.9;
+    // Sway around the vertical so the lettering stays readable but still
+    // catches the studio light across its bevels.
+    bell.current.rotation.y = Math.sin(t * 0.42) * 0.24;
+    bell.current.rotation.x = lift * -0.5;
+    bell.current.rotation.z = lift * 0.5;
     bell.current.scale.setScalar(1 - lift * 0.4);
 
     if (halo.current) halo.current.opacity = 0.75 * (1 - open) + 0.25;
@@ -161,10 +145,7 @@ export function Emblem({
           </mesh>
         </group>
         <group ref={bell}>
-          {/* Built upright, laid horizontal to match the logo. */}
-          <group rotation={[0, 0, Math.PI / 2]}>
-            <Dumbbell material={orange} />
-          </group>
+          <FitxWordmark chrome={chrome} accent={orange} scale={0.95} />
         </group>
       </group>
       {shards > 0 ? <Shards count={shards} chrome={chrome} /> : null}
