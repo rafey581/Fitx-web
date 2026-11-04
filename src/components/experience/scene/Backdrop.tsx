@@ -27,7 +27,7 @@ function Rig({ mobile }: { mobile: boolean }) {
   const rings = useRef<THREE.Group>(null);
 
   useFrame(({ clock }, delta) => {
-    film.time += (film.target - film.time) * (1 - Math.exp(-delta * 3));
+    film.time += (film.target - film.time) * (1 - Math.exp(-delta * 6));
     film.velocity *= 0.92;
     const p = film.time;
     const t = clock.elapsedTime;

@@ -65,6 +65,9 @@ export function Experience({ content }: { content: FilmContent }) {
   const chapter = useFilmUi((s) => s.chapter);
   const menuOpen = useFilmUi((s) => s.menuOpen);
   const [introDone, setIntroDone] = useState(false);
+  const [mobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches,
+  );
 
   const onProgress = useCallback((p: number) => setProgress(p), []);
 
@@ -84,7 +87,19 @@ export function Experience({ content }: { content: FilmContent }) {
     window.scrollTo(0, 0);
     film.target = film.time = film.velocity = 0;
 
-    const lenis = new Lenis({ lerp: reduced ? 1 : 0.08, smoothWheel: !reduced, wheelMultiplier: 0.9 });
+    // Touch devices keep a smoothed scroll of their own: without it the phone
+    // uses the browser's short native flick, which crawls across a film this
+    // long. `touchMultiplier` is the "scroll power" — how far one swipe goes.
+    const touch = window.matchMedia("(pointer: coarse)").matches;
+    const lenis = new Lenis({
+      lerp: reduced ? 1 : 0.1,
+      smoothWheel: !reduced,
+      wheelMultiplier: 0.9,
+      syncTouch: !reduced && touch,
+      syncTouchLerp: 0.1,
+      touchMultiplier: 1.6,
+      touchInertiaExponent: 1.5,
+    });
     lenisRef.current = lenis;
     lenis.stop();
 
@@ -209,7 +224,9 @@ export function Experience({ content }: { content: FilmContent }) {
       {/* Invisible spacers: their heights are the film's running time. */}
       <div ref={spacers} aria-hidden="true">
         {CHAPTERS.map((c) => (
-          <div key={c.id} style={{ height: `${c.vh}svh` }} />
+          // A phone swipe covers far less ground, so the film runs shorter
+          // there: same shots, fewer screens of scrolling to reach them.
+          <div key={c.id} style={{ height: `${Math.round(c.vh * (mobile ? 0.7 : 1))}svh` }} />
         ))}
       </div>
 

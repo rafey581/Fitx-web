@@ -47,7 +47,15 @@ export function FilmShell({
   // Smooth scroll + scroll progress for the backdrop and HUD bar.
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const lenis = new Lenis({ lerp: reduced ? 1 : 0.1, smoothWheel: !reduced });
+    const touch = window.matchMedia("(pointer: coarse)").matches;
+    const lenis = new Lenis({
+      lerp: reduced ? 1 : 0.1,
+      smoothWheel: !reduced,
+      syncTouch: !reduced && touch,
+      syncTouchLerp: 0.1,
+      touchMultiplier: 1.6,
+      touchInertiaExponent: 1.5,
+    });
     lenisRef.current = lenis;
     film.target = film.time = film.velocity = 0;
 

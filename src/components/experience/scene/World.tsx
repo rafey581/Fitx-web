@@ -49,7 +49,7 @@ function CameraRig({ reduced, mobile }: { reduced: boolean; mobile: boolean }) {
   useFrame((_, delta) => {
     // Ease the shown time towards the scrolled time: this damping is what
     // makes scroll feel like scrubbing a film rather than jumping slides.
-    const k = reduced ? 1 : 1 - Math.exp(-delta * 3.2);
+    const k = reduced ? 1 : 1 - Math.exp(-delta * 7);
     film.time += (film.target - film.time) * k;
     film.velocity *= 0.92;
 
