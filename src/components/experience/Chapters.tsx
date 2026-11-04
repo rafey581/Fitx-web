@@ -43,7 +43,7 @@ export function Chapters({ content }: { content: FilmContent }) {
       {/* 00 · Origin */}
       <section data-frame="0" className="film-frame" aria-label="FITX">
         <HeroSlides />
-        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-10 px-5 pb-24 sm:px-10 md:flex-row md:items-end md:justify-between md:pb-14">
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-10 px-5 pb-24 sm:px-10 md:flex-row md:items-end md:justify-between md:pb-24">
           <div>
             <Tag index={0}>Personal training gym · Sahiwal</Tag>
             <h1 className="film-display mt-5 type-hero">
@@ -96,7 +96,9 @@ export function Chapters({ content }: { content: FilmContent }) {
       <section data-frame="2" className="film-frame" aria-label="Programs">
         <div className="absolute left-5 top-28 sm:left-10">
           <Tag index={2}>What we do</Tag>
-          <ol className="film-mono mt-8 hidden space-y-2 text-[11px] text-white/40 md:block">
+          {/* Fixed-width index column: the program titles start after it, so the
+              two never sit on top of each other. */}
+          <ol className="film-mono mt-8 hidden w-56 space-y-2 text-[11px] text-white/40 lg:block">
             {services.map((s, k) => (
               <li key={s.title} data-sub-highlight={`${programBeat(k)},0.0925`} className="flex gap-3 transition-colors">
                 <span>{pad(k + 1)}</span>
@@ -105,7 +107,7 @@ export function Chapters({ content }: { content: FilmContent }) {
             ))}
           </ol>
         </div>
-        <div className="absolute inset-x-5 bottom-24 sm:left-10 sm:right-auto md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:pl-[14vw]">
+        <div className="absolute inset-x-5 bottom-24 sm:left-10 sm:right-auto md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:pl-[14vw] lg:pl-[20rem]">
           {services.map((s, k) => (
             <article key={s.title} data-sub={`${programBeat(k)},0.06`} className="film-beat max-w-xl">
               <p className="film-mono text-[11px] text-accent">
