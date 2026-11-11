@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Float, PerspectiveCamera } from "@react-three/drei";
+import { Environment, Float, Lightformer, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 
 import { FitxWordmark } from "@/components/3d/FitxWordmark";
@@ -11,9 +11,10 @@ function Scene() {
   const chrome = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: "#d9dadf",
-        metalness: 0.75,
-        roughness: 0.2,
+        color: "#eef0f3",
+        metalness: 1,
+        roughness: 0.12,
+        envMapIntensity: 1.5,
       }),
     [],
   );
@@ -32,6 +33,13 @@ function Scene() {
   return (
     <>
       <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+      <Environment resolution={256} frames={1}>
+        <color attach="background" args={["#08070a"]} />
+        <Lightformer form="rect" intensity={3} color="#ffffff" position={[0, 6, -4]} scale={[12, 1.2, 1]} />
+        <Lightformer form="rect" intensity={6} color="#ffffff" position={[-6, 0, 2]} rotation-y={Math.PI / 2} scale={[8, 0.6, 1]} />
+        <Lightformer form="rect" intensity={2} color="#cfd8ff" position={[6, 1, 2]} rotation-y={-Math.PI / 2} scale={[8, 1, 1]} />
+        <Lightformer form="ring" intensity={2.5} color="#ffffff" position={[0, -4, 6]} scale={3} />
+      </Environment>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <pointLight position={[-10, -10, -5]} intensity={0.5} color="#FF4B00" />

@@ -107,7 +107,7 @@ export function Chapters({ content }: { content: FilmContent }) {
             ))}
           </ol>
         </div>
-        <div className="absolute inset-x-5 bottom-24 sm:left-10 sm:right-auto md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:pl-[14vw] lg:pl-[20rem]">
+        <div className="absolute inset-x-5 bottom-24 sm:left-10 sm:right-auto md:bottom-auto md:top-1/2 md:-translate-y-1/2 lg:left-[19rem]">
           {services.map((s, k) => (
             <article key={s.title} data-sub={`${programBeat(k)},0.06`} className="film-beat max-w-xl">
               <p className="film-mono text-[11px] text-accent">

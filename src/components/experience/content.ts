@@ -214,10 +214,10 @@ export const defaultContent: FilmContent = {
 
 /** The film's chapters, in scroll order. `vh` is the scroll length of each. */
 export const CHAPTERS = [
-  { id: "origin", label: "Origin", vh: 210 },
+  { id: "origin", label: "Origin", vh: 105 },
   { id: "forge", label: "Forge", vh: 200 },
   { id: "programs", label: "Programs", vh: 320 },
-  { id: "studio", label: "Studio", vh: 220 },
+  { id: "studio", label: "Studio", vh: 73 },
   { id: "coaches", label: "Coaches", vh: 330 },
   { id: "progress", label: "Progress", vh: 220 },
   { id: "plans", label: "Fees", vh: 200 },

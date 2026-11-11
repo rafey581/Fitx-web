@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { heroSlides } from "./content";
 
-const INTERVAL = 5500;
+const INTERVAL = 2750;
 
 /**
  * Opening photo slideshow: real studio photos crossfade with a slow zoom.

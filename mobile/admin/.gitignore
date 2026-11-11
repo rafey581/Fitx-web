@@ -4,3 +4,9 @@ local.properties
 *.iml
 .idea/
 captures/
+
+# Release signing material and build output you hand to a phone
+dist/
+*.jks
+*.keystore
+keystore.properties
