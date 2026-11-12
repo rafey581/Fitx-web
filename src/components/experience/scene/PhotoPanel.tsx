@@ -9,24 +9,19 @@ import { film, ramp } from "../store";
 
 /**
  * A studio photo floating in space. Far away it is a cold, desaturated slab;
- * as the camera approaches it warms into full colour. Scroll velocity bends
- * the plane and splits its RGB channels, which gives fast scrolling a
- * cinematic, motion-blurred feel.
+ * as the camera approaches it warms into full colour, and scroll velocity
+ * splits its RGB channels for a cinematic, motion-blurred feel.
+ *
+ * The plane itself stays dead flat: any bending read as the photos curving
+ * out of shape while scrolling, so the geometry is left alone.
  */
 
 const vertex = /* glsl */ `
-  uniform float uVel;
-  uniform float uTime;
-  uniform float uReveal;
   varying vec2 vUv;
   varying float vDepth;
   void main() {
     vUv = uv;
-    vec3 p = position;
-    float bend = sin(uv.x * 3.14159);
-    p.z += bend * uVel * 0.4;
-    p.z += sin(uv.y * 4.0 + uTime * 0.8) * 0.04 * (1.0 - uReveal);
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
     vDepth = -mv.z;
     gl_Position = projectionMatrix * mv;
   }
@@ -137,7 +132,6 @@ export function PhotoPanel({
       uImgAspect: { value: imgAspect },
       uPlaneAspect: { value: width / h },
       uVel: { value: 0 },
-      uTime: { value: 0 },
       uReveal: { value: 0 },
       uOpacity: { value: 1 },
       uFog: { value: new THREE.Color("#050407") },
@@ -155,20 +149,19 @@ export function PhotoPanel({
     }
   }, [lookAtAxis, position]);
 
-  useFrame(({ camera, clock }) => {
+  useFrame(({ camera }) => {
     const u = material.current?.uniforms;
     if (!group.current || !u) return;
     group.current.getWorldPosition(_worldPos);
     const d = camera.position.distanceTo(_worldPos);
     u.uReveal.value = 1 - ramp(d, revealNear, revealFar);
     u.uVel.value = THREE.MathUtils.lerp(u.uVel.value, film.velocity, 0.1);
-    u.uTime.value = clock.elapsedTime;
   });
 
   return (
     <group ref={group} position={position} rotation={rotation}>
       <mesh>
-        <planeGeometry args={[width, h, 24, 24]} />
+        <planeGeometry args={[width, h]} />
         <shaderMaterial
           ref={material}
           vertexShader={vertex}

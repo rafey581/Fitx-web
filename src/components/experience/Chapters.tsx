@@ -223,48 +223,56 @@ export function Chapters({ content }: { content: FilmContent }) {
 
       {/* 06 · Plans */}
       <section data-frame="6" className="film-frame" aria-label="Fees">
-        <div className="absolute inset-x-5 top-28 text-center">
-          <div className="flex justify-center">
-            <Tag index={6}>Fees</Tag>
+        {/* One centred column so the cards fill the space under the heading instead
+            of hanging off the bottom edge with a void above them. */}
+        <div className="absolute inset-x-4 top-20 bottom-20 flex flex-col justify-center gap-5 sm:inset-x-10 sm:gap-8 md:top-24 md:bottom-16">
+          <div className="text-center">
+            <div className="flex justify-center">
+              <Tag index={6}>Fees</Tag>
+            </div>
+            <h2 className="film-display mt-4 type-heading">
+              Two ways to train. <span className="text-accent">Save 10% on 3 months.</span>
+            </h2>
           </div>
-          <h2 className="film-display mt-4 type-heading">
-            Two ways to train. <span className="text-accent">Save 10% on 3 months.</span>
-          </h2>
-        </div>
-        <div
-          className={`absolute inset-x-3 bottom-20 mx-auto grid gap-2 sm:inset-x-10 sm:gap-6 md:bottom-12 ${
-            plans.length === 2 ? "max-w-4xl grid-cols-2" : "grid-cols-3"
-          }`}
-        >
-          {plans.map((p) => (
-            <Link
-              key={p.name}
-              href={p.href}
-              className={`film-glass group block p-3 sm:p-6 ${p.highlighted ? "film-glass-hot" : ""}`}
-            >
-              <p className="film-mono flex justify-between gap-2 text-[10px] text-white/60">
-                <span>{p.name}</span>
-                {p.highlighted ? <span className="hidden text-accent sm:inline">Personal</span> : null}
-              </p>
-              <p className="film-display mt-3 text-lg sm:text-3xl">{p.price}</p>
-              <p className="film-mono text-[10px] text-white/50">{p.period}</p>
-              <ul className="mt-4 hidden space-y-1.5 text-sm text-white/70 sm:block">
-                {p.features.map((f) => (
-                  <li key={f} className="flex gap-2">
-                    <span className="text-accent">+</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <span className="film-link mt-4 text-[10px] sm:mt-6">Enquire</span>
-            </Link>
-          ))}
+          <div
+            className={`mx-auto grid w-full gap-2.5 sm:gap-6 ${
+              plans.length === 2 ? "max-w-4xl sm:grid-cols-2" : "max-w-6xl sm:grid-cols-3"
+            }`}
+          >
+            {plans.map((p) => (
+              <Link
+                key={p.name}
+                href={p.href}
+                className={`film-glass group flex flex-col p-4 sm:p-6 ${p.highlighted ? "film-glass-hot" : ""}`}
+              >
+                <p className="film-mono flex justify-between gap-2 text-[10px] text-white/60">
+                  <span>{p.name}</span>
+                  {p.highlighted ? <span className="text-accent">Personal</span> : null}
+                </p>
+                <p className="film-display mt-2 text-2xl leading-none sm:mt-3 sm:text-3xl">{p.price}</p>
+                <p className="film-mono mt-1 text-[10px] text-white/50">{p.period}</p>
+                <ul
+                  className={`mt-3 gap-x-4 gap-y-1 text-[12px] text-white/70 sm:mt-4 sm:block sm:space-y-1.5 sm:text-sm ${
+                    plans.length <= 2 ? "grid grid-cols-2" : "hidden"
+                  } [@media(max-height:700px)]:hidden`}
+                >
+                  {p.features.map((f) => (
+                    <li key={f} className="flex gap-1.5">
+                      <span className="text-accent">+</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <span className="film-link mt-auto pt-3 text-[10px] sm:mt-6 sm:pt-0">Enquire</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* 07 · Join */}
       <section data-frame="7" className="film-frame" aria-label="Start training">
-        <div className="absolute inset-x-0 bottom-[24svh] flex flex-col items-center px-5 text-center md:bottom-[20svh]">
+        <div className="absolute inset-x-0 bottom-[20svh] flex flex-col items-center px-5 text-center [@media(min-width:48rem)_and_(min-height:760px)]:bottom-[15rem]">
           <Tag index={7}>Your move</Tag>
           <h2 className="film-display mt-5 type-title">
             <span className="block" data-scramble>
@@ -289,14 +297,15 @@ export function Chapters({ content }: { content: FilmContent }) {
               </a>
             ) : null}
           </div>
-          <p className="film-mono mt-8 text-[11px] text-white/55">
+          <p className="film-mono mt-7 max-w-[26rem] text-[11px] leading-relaxed text-white/55">
             Designed &amp; developed by{" "}
             <a href="https://rafey.me" target="_blank" rel="noopener" className="text-white/85 underline-offset-4 hover:text-accent hover:underline">
               Xast Solutions
             </a>
           </p>
         </div>
-        <footer className="absolute inset-x-5 bottom-16 hidden gap-6 text-sm text-white/80 sm:left-10 sm:right-28 md:grid md:grid-cols-4">
+        {/* Address/timings only show where the join copy has been lifted clear of them. */}
+        <footer className="absolute inset-x-5 bottom-16 hidden gap-6 text-sm text-white/80 sm:left-10 sm:right-28 md:grid-cols-4 [@media(min-width:48rem)_and_(min-height:760px)]:grid">
           <p>
             <span className="footer-label mb-1 block">Visit</span>
             {content.address}

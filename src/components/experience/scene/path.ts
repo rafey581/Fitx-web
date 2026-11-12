@@ -105,40 +105,83 @@ const buildKeys = (mobile: boolean): Key[] => [
 const KEYS = buildKeys(false);
 const MOBILE_KEYS = buildKeys(true);
 
-function catmull(p0: number, p1: number, p2: number, p3: number, t: number) {
-  const t2 = t * t;
-  const t3 = t2 * t;
-  return (
-    0.5 *
-    (2 * p1 +
-      (-p0 + p2) * t +
-      (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-      (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
-  );
-}
+/** Resolution of the baked camera track, in chapter time. */
+const STEP = 0.002;
+/** Half-width of each smoothing pass, in track samples (~24 ms a pass). */
+const SMOOTH = 12;
 
-function sample(KEYS: Key[], time: number, field: "pos" | "look", out: THREE.Vector3) {
-  const last = KEYS.length - 1;
-  if (time <= KEYS[0].t) return out.set(...KEYS[0][field]);
-  if (time >= KEYS[last].t) return out.set(...KEYS[last][field]);
-
+/** Straight-line read of the shot list at `time`. */
+function lerpAxis(keys: Key[], time: number, field: "pos" | "look", axis: number) {
+  const last = keys.length - 1;
+  if (time <= keys[0].t) return keys[0][field][axis];
+  if (time >= keys[last].t) return keys[last][field][axis];
   let i = 0;
-  while (i < last - 1 && KEYS[i + 1].t < time) i++;
-  const a = KEYS[Math.max(0, i - 1)][field];
-  const b = KEYS[i][field];
-  const c = KEYS[i + 1][field];
-  const d = KEYS[Math.min(last, i + 2)][field];
-  const raw = (time - KEYS[i].t) / (KEYS[i + 1].t - KEYS[i].t);
-  const t = raw * raw * (3 - 2 * raw);
-  return out.set(
-    catmull(a[0], b[0], c[0], d[0], t),
-    catmull(a[1], b[1], c[1], d[1], t),
-    catmull(a[2], b[2], c[2], d[2], t),
-  );
+  while (i < last - 1 && keys[i + 1].t < time) i++;
+  const b = keys[i];
+  const c = keys[i + 1];
+  const u = (time - b.t) / (c.t - b.t);
+  return b[field][axis] + (c[field][axis] - b[field][axis]) * u;
 }
+
+/** Moving average of `src`, O(n) per channel via a prefix sum. */
+function boxFilter(src: Float32Array, n: number, channels: number) {
+  const out = new Float32Array(src.length);
+  const prefix = new Float64Array(n + 1);
+  for (let c = 0; c < channels; c++) {
+    for (let i = 0; i < n; i++) prefix[i + 1] = prefix[i] + src[i * channels + c];
+    for (let i = 0; i < n; i++) {
+      const a = Math.max(0, i - SMOOTH);
+      const b = Math.min(n, i + SMOOTH + 1);
+      out[i * channels + c] = (prefix[b] - prefix[a]) / (b - a);
+    }
+  }
+  return out;
+}
+
+/**
+ * Bakes the shot list into a track and runs two smoothing passes over it.
+ *
+ * Easing the camera into each keyframe stops it dead on arrival, so scrolling
+ * through the panels went surge–halt–surge and the film felt like it was
+ * bumping over the photos. Reading a slightly smoothed track instead keeps the
+ * shots where they were framed but carries the camera's speed smoothly across
+ * the keyframes; the two passes give the motion a continuous, T-round-eased
+ * velocity rather than a stop at every key.
+ */
+function buildTrack(keys: Key[]) {
+  const t0 = keys[0].t;
+  const n = Math.round((keys[keys.length - 1].t - t0) / STEP) + 1;
+  let track = new Float32Array(n * 6);
+  for (let i = 0; i < n; i++) {
+    const time = t0 + i * STEP;
+    for (let a = 0; a < 3; a++) {
+      track[i * 6 + a] = lerpAxis(keys, time, "pos", a);
+      track[i * 6 + 3 + a] = lerpAxis(keys, time, "look", a);
+    }
+  }
+  track = boxFilter(track, n, 6);
+  track = boxFilter(track, n, 6);
+  return { t0, n, track };
+}
+
+const TRACK = buildTrack(KEYS);
+const MOBILE_TRACK = buildTrack(MOBILE_KEYS);
 
 export function cameraAt(time: number, pos: THREE.Vector3, look: THREE.Vector3, mobile = false) {
-  const keys = mobile ? MOBILE_KEYS : KEYS;
-  sample(keys, time, "pos", pos);
-  sample(keys, time, "look", look);
+  const { t0, n, track } = mobile ? MOBILE_TRACK : TRACK;
+  const f = Math.min(n - 1, Math.max(0, (time - t0) / STEP));
+  const i = Math.min(n - 2, Math.floor(f));
+  const u = Math.min(1, Math.max(0, f - i));
+  const a = i * 6;
+  const b = a + 6;
+  pos.set(
+    track[a] + (track[b] - track[a]) * u,
+    track[a + 1] + (track[b + 1] - track[a + 1]) * u,
+    track[a + 2] + (track[b + 2] - track[a + 2]) * u,
+  );
+  look.set(
+    track[a + 3] + (track[b + 3] - track[a + 3]) * u,
+    track[a + 4] + (track[b + 4] - track[a + 4]) * u,
+    track[a + 5] + (track[b + 5] - track[a + 5]) * u,
+  );
 }

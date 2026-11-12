@@ -101,11 +101,19 @@ function Effects() {
 function Studiolights() {
   return (
     <Environment resolution={256} frames={1}>
-      <color attach="background" args={["#08070a"]} />
+      {/* Dark studio, but not black: whatever this colour is, the chrome
+          mirrors it, so a pure-black backdrop turns the silver letters black. */}
+      <color attach="background" args={["#24262b"]} />
       <Lightformer form="rect" intensity={3} color="#ffffff" position={[0, 6, -4]} scale={[12, 1.2, 1]} />
       <Lightformer form="rect" intensity={6} color="#ff5a12" position={[-6, 0, 2]} rotation-y={Math.PI / 2} scale={[8, 0.6, 1]} />
       <Lightformer form="rect" intensity={2} color="#cfd8ff" position={[6, 1, 2]} rotation-y={-Math.PI / 2} scale={[8, 1, 1]} />
       <Lightformer form="ring" intensity={2.5} color="#ffffff" position={[0, -4, 6]} scale={3} />
+      {/* Key softbox directly in front of the wordmark: the flat faces of the
+          extrusion point at the camera (+Z), so without this they only mirror
+          the dark studio behind it. */}
+      <Lightformer form="rect" intensity={5} color="#ffffff" position={[0, 1.5, 6]} scale={[10, 4, 1]} />
+      <Lightformer form="rect" intensity={4} color="#ffffff" position={[-3, 0, 5]} rotation-y={0.5} scale={[1.4, 6, 1]} />
+      <Lightformer form="rect" intensity={4} color="#ffffff" position={[3, 0, 5]} rotation-y={-0.5} scale={[1.4, 6, 1]} />
     </Environment>
   );
 }

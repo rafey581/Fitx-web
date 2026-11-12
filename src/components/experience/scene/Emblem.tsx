@@ -17,11 +17,15 @@ const RING_R = 2.2;
 const ARC = Math.PI * 0.8;
 
 export function chromeMaterial() {
-  return new THREE.MeshStandardMaterial({
-    color: "#d9dadf",
-    metalness: 1,
-    roughness: 0.14,
-    envMapIntensity: 1.35,
+  return new THREE.MeshPhysicalMaterial({
+    // Bright, near-white base: on a metal, `color` tints the reflection, so a
+    // dark value reads black once the studio around it is dark.
+    color: "#f4f6f9",
+    metalness: 0.9,
+    roughness: 0.18,
+    envMapIntensity: 1.7,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.15,
   });
 }
 
