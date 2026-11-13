@@ -187,7 +187,8 @@ export default async function TrainerDetailPage({
 
         <figure className="overflow-hidden rounded-brand border border-line">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={portrait} alt={trainer.name} className="aspect-[4/5] w-full object-cover" />
+          <img src={portrait} alt={trainer.name}className="w-full object-cover"
+ />
         </figure>
       </section>
 

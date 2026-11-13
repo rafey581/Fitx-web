@@ -126,7 +126,7 @@ export function LandingView({ page }: { page: LandingPage }) {
                     src={c.photo}
                     alt={`${c.name}, ${c.role} at FITX Sahiwal`}
                     loading="lazy"
-                    className="aspect-[4/5] w-full object-cover"
+                    className="w-full object-cover"
                   />
                   <div className="p-5">
                     <h3 className="heading-display text-base text-ink group-hover:text-accent">{c.name}</h3>

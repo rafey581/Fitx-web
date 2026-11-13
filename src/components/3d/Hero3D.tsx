@@ -12,11 +12,11 @@ function Scene() {
     () =>
       new THREE.MeshPhysicalMaterial({
         color: "#f4f6f9",
-        metalness: 0.9,
-        roughness: 0.18,
-        envMapIntensity: 1.7,
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.15,
+        metalness: 0.5,
+        roughness: 0.5,
+        envMapIntensity: 0.8,
+        clearcoat: 0.2,
+        clearcoatRoughness: 0.3,
       }),
     [],
   );
