@@ -40,9 +40,8 @@ export function Coaches({ coaches }: { coaches: FilmContent["coaches"] }) {
     <group>
       {coaches.slice(0, FILM_COACHES).map((c, k) => {
         const x = xs[k];
-        const turn = -x * 0.033;
         return (
-          <group key={c.name + k} position={[x, 0, z]} rotation={[0, turn, 0]}>
+          <group key={c.name + k} position={[x, 0, z]}>
             <mesh position={[0, WORLD.floorY + slabHeight / 2, -0.2]}>
               <boxGeometry args={[3, slabHeight, 0.3]} />
               <meshStandardMaterial color="#0e0e12" metalness={0.85} roughness={0.35} />
