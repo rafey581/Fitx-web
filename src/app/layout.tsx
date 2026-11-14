@@ -18,7 +18,6 @@ import "./globals.css";
 const headingFont = Montserrat({
   subsets: ["latin"],
   variable: "--font-heading",
-  weight: ["400", "600", "700", "800", "900"],
   display: "swap",
 });
 
