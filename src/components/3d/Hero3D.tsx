@@ -15,8 +15,8 @@ function Scene() {
         metalness: 0.5,
         roughness: 0.5,
         envMapIntensity: 0.8,
-        clearcoat: 0.2,
-        clearcoatRoughness: 0.3,
+        clearcoat: 0.05,
+        clearcoatRoughness: 0.5,
       }),
     [],
   );
@@ -24,10 +24,10 @@ function Scene() {
     () =>
       new THREE.MeshStandardMaterial({
         color: "#FF4B00",
-        metalness: 0.55,
-        roughness: 0.25,
+        metalness: 0.3,
+        roughness: 0.4,
         emissive: "#FF4B00",
-        emissiveIntensity: 0.18,
+        emissiveIntensity: 0.05,
       }),
     [],
   );
